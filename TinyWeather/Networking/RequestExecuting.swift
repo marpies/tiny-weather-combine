@@ -10,8 +10,8 @@
 //  
 
 import Foundation
-import RxSwift
+import Combine
 
 protocol RequestExecuting {
-    func execute(request: RequestProviding) -> Single<HTTPResponse>
+    func execute(request: RequestProviding) -> AnyPublisher<HTTPResponse, Error>
 }
