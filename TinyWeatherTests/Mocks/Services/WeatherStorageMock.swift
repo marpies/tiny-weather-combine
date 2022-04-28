@@ -55,33 +55,34 @@ class WeatherStorageMock: WeatherStorageManaging {
     }
     
     var numLoadLocationWeatherCalls: Int = 0
-    func loadLocationWeather(latitude: Double, longitude: Double) -> Maybe<Weather.Overview.Response> {
-        Maybe.create { maybe in
-            self.numLoadLocationWeatherCalls += 1
-            if let weather = self.locationWeatherResponse {
-                maybe(.success(weather))
-            } else if self.shouldFail {
-                maybe(.error(MockError.forcedError))
-            } else {
-                maybe(.completed)
+    func loadLocationWeather(latitude: Double, longitude: Double) -> AnyPublisher<Weather.Overview.Response?, Error> {
+        Deferred {
+            Future<Weather.Overview.Response?, Error> { future in
+                self.numLoadLocationWeatherCalls += 1
+                if let weather = self.locationWeatherResponse {
+                    future(.success(weather))
+                } else if self.shouldFail {
+                    future(.failure(MockError.forcedError))
+                } else {
+                    future(.success(nil))
+                }
             }
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
     }
     
     var numSaveLocationWeatherCalls: Int = 0
-    func saveLocationWeather(_ weather: Weather.Overview.Response, location: WeatherLocation) -> Completable {
-        Completable.create { observer in
-            self.numSaveLocationWeatherCalls += 1
-            
-            if self.shouldFail {
-                observer(.error(MockError.forcedError))
-            } else {
-                observer(.completed)
+    func saveLocationWeather(_ weather: Weather.Overview.Response, location: WeatherLocation) -> AnyPublisher<Void, Error> {
+        Deferred {
+            Future<Void, Error> { future in
+                self.numSaveLocationWeatherCalls += 1
+                
+                if self.shouldFail {
+                    future(.failure(MockError.forcedError))
+                } else {
+                    future(.success(()))
+                }
             }
-            
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
     }
     
     var numLoadLocationFavoriteStatusCalls: Int = 0

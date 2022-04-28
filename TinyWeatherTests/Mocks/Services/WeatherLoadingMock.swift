@@ -10,7 +10,7 @@
 //  
 
 import Foundation
-import RxSwift
+import Combine
 @testable import TinyWeather
 
 class WeatherLoadingMock: WeatherLoading {
@@ -20,22 +20,22 @@ class WeatherLoadingMock: WeatherLoading {
     var numLoadWeatherCalls: Int = 0
     var numLoadWeatherSubscriptions: Int = 0
     
-    func loadWeather(latitude: Double, longitude: Double) -> Single<Weather.Overview.Response> {
+    func loadWeather(latitude: Double, longitude: Double) -> AnyPublisher<Weather.Overview.Response, Error> {
         self.numLoadWeatherCalls += 1
         
-        return Single.create { single in
+        return Deferred<Future<Weather.Overview.Response, Error>> {
             self.numLoadWeatherSubscriptions += 1
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                if self.shouldFail {
-                    single(.failure(MockError.forcedError))
-                } else {
-                    single(.success(self.weather))
+            return Future<Weather.Overview.Response, Error> { future in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    if self.shouldFail {
+                        future(.failure(MockError.forcedError))
+                    } else {
+                        future(.success(self.weather))
+                    }
                 }
             }
-            
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
     }
     
 }

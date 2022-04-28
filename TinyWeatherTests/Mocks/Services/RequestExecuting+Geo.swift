@@ -10,7 +10,7 @@
 //  
 
 import Foundation
-import RxSwift
+import Combine
 @testable import TinyWeather
 
 class RequestExecutingGeo: RequestExecuting {
@@ -20,28 +20,28 @@ class RequestExecutingGeo: RequestExecuting {
     var shouldFail: Bool = false
     var shouldRespondWithEmpty: Bool = false
     
-    func execute(request: RequestProviding) -> Single<HTTPResponse> {
-        return Single.create { single in
-            self.numExecuteCalls += 1 
+    func execute(request: RequestProviding) -> AnyPublisher<HTTPResponse, Error> {
+        return Deferred<Future<HTTPResponse, Error>> {
+            self.numExecuteCalls += 1
             
-            if self.shouldFail {
-                single(.failure(MockError.forcedError))
-            } else {
-                let data: Data
-                
-                if self.shouldRespondWithEmpty {
-                    data = ResponseGeo.emptyResponse.asData
+            return Future<HTTPResponse, Error> { future in
+                if self.shouldFail {
+                    future(.failure(MockError.forcedError))
                 } else {
-                    data = ResponseGeo.successResponse.asData
+                    let data: Data
+                    
+                    if self.shouldRespondWithEmpty {
+                        data = ResponseGeo.emptyResponse.asData
+                    } else {
+                        data = ResponseGeo.successResponse.asData
+                    }
+                    
+                    let response = HTTPResponse(request: request.request!, data: data, response: nil)
+                    
+                    future(.success(response))
                 }
-                
-                let response = HTTPResponse(request: request.request!, data: data, response: nil)
-                
-                single(.success(response))
             }
-            
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
     }
     
 }

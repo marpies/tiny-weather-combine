@@ -10,7 +10,7 @@
 //  
 
 import Foundation
-import RxSwift
+import Combine
 import TWModels
 @testable import TinyWeather
 
@@ -20,23 +20,24 @@ class LocationWeatherStorageTestMock: LocationWeatherStorageManaging {
     var weather: Weather.Overview.Response!
     var cacheDuration: TimeInterval = 0
     
-    func loadLocationWeather(latitude: Double, longitude: Double) -> Maybe<Weather.Overview.Response> {
-        return Maybe.create { maybe in
-            if self.shouldFail {
-                maybe(.error(MockError.forcedError))
-            } else {
-                maybe(.success(self.weather))
+    func loadLocationWeather(latitude: Double, longitude: Double) -> AnyPublisher<Weather.Overview.Response?, Error> {
+        return Deferred<Future<Weather.Overview.Response?, Error>> {
+            Future<Weather.Overview.Response?, Error> { future in
+                if self.shouldFail {
+                    future(.failure(MockError.forcedError))
+                } else {
+                    future(.success(self.weather))
+                }
             }
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
     }
     
-    func saveLocationWeather(_ weather: Weather.Overview.Response, location: WeatherLocation) -> Completable {
-        return Completable.create { observer in
-            observer(.completed)
-            
-            return Disposables.create()
-        }
+    func saveLocationWeather(_ weather: Weather.Overview.Response, location: WeatherLocation) -> AnyPublisher<Void, Error> {
+        return Deferred {
+            Future<Void, Error> { future in
+                future(.success(()))
+            }
+        }.eraseToAnyPublisher()
     }
     
 }

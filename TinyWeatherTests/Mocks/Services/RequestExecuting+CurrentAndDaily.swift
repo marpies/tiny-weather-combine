@@ -10,7 +10,7 @@
 //  
 
 import Foundation
-import RxSwift
+import Combine
 @testable import TinyWeather
 
 class RequestExecutingCurrentAndDaily: RequestExecuting {
@@ -19,21 +19,21 @@ class RequestExecutingCurrentAndDaily: RequestExecuting {
     var numExecuteCalls: Int = 0
     var shouldFail: Bool = false
     
-    func execute(request: RequestProviding) -> Single<HTTPResponse> {
-        return Single.create { single in
+    func execute(request: RequestProviding) -> AnyPublisher<HTTPResponse, Error> {
+        return Deferred<Future<HTTPResponse, Error>> {
             self.numExecuteCalls += 1
             
-            if self.shouldFail {
-                single(.failure(MockError.forcedError))
-            } else {
-                let data: Data = ResponseCurrentAndDaily.getSuccessResponse(timestamp: self.requestTimestamp).asData
-                let response = HTTPResponse(request: request.request!, data: data, response: nil)
-                
-                single(.success(response))
+            return Future<HTTPResponse, Error> { future in
+                if self.shouldFail {
+                    future(.failure(MockError.forcedError))
+                } else {
+                    let data: Data = ResponseCurrentAndDaily.getSuccessResponse(timestamp: self.requestTimestamp).asData
+                    let response = HTTPResponse(request: request.request!, data: data, response: nil)
+                    
+                    future(.success(response))
+                }
             }
-            
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
     }
     
 }
