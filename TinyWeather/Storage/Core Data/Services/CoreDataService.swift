@@ -11,7 +11,6 @@
 
 import Foundation
 import CoreData
-import RxSwift
 
 class CoreDataService {
     
