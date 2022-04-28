@@ -292,7 +292,6 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
     
     private func refreshWeather(forLocation location: WeatherLocation) {
         let observable = self.weatherLoader.loadWeather(latitude: location.lat, longitude: location.lon)
-            .asObservable()
             .share()
         
         // Identical timestamp, refresh the current weather view only
@@ -303,39 +302,43 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
             .compactMap({ [weak self] (weather: Weather.Overview.Response) in
                 self?.getCurrentWeather(response: weather.current, timezoneOffset: weather.timezoneOffset)
             })
-            .subscribe(onNext: { [weak self] (weather: Weather.Current.ViewModel) in
+            .sink(receiveCompletion: { completion in
+                // Error handled in the other subscriber below
+            }, receiveValue: { [weak self] (weather: Weather.Current.ViewModel) in
                 guard let weakSelf = self else { return }
                 
                 weakSelf._state.accept(.loaded)
                 weakSelf._currentWeather.accept(weather)
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         // Refresh all the info if we got a new data
         observable
             .filter({ [model] (weather: Weather.Overview.Response) in
                 model.loadTimestamp.isNearEqual(to: weather.current.lastUpdate) == false
             })
-            .do(onNext: { [weak self] (weather: Weather.Overview.Response) in
+            .handleEvents(receiveOutput: { [weak self] (weather: Weather.Overview.Response) in
                 guard let weakSelf = self else { return }
                 
                 weakSelf.model.loadTimestamp = weather.current.lastUpdate
-                weakSelf.storage.saveLocationWeather(weather, location: location).subscribe().disposed(by: weakSelf.disposeBag)
+                weakSelf.storage.saveLocationWeather(weather, location: location).sink(receiveCompletion: { _ in }, receiveValue: { }).store(in: &weakSelf.cancellables)
             })
             .compactMap({ [weak self] (weather: Weather.Overview.Response) in
                 self?.getWeatherOverview(response: weather)
             })
-            .subscribe(onNext: { [weak self] (weather: Weather.Overview.ViewModel) in
+            .sink(receiveCompletion: { [weak self] (completion) in
+                if case .failure = completion {
+                    self?._state.accept(.error)
+                }
+            }, receiveValue: { [weak self] (weather: Weather.Overview.ViewModel) in
                 guard let weakSelf = self else { return }
                 
                 weakSelf._state.accept(.loaded)
                 weakSelf._currentWeather.accept(weather.current)
                 weakSelf._dailyWeatherWillRefresh.accept(())
                 weakSelf._dailyWeather.accept(weather.daily)
-            }, onError: { [weak self] _ in
-                self?._state.accept(.error)
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
     }
     
     private func getLocationInfo(response: WeatherLocation) -> Weather.Location.ViewModel {
