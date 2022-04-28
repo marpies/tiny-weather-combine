@@ -10,7 +10,7 @@
 //  
 
 import Foundation
-import RxSwift
+import Combine
 import CoreData
 import TWModels
 
@@ -20,73 +20,73 @@ extension CoreDataService: LocationWeatherStorageManaging {
         return 10 * 60
     }
     
-    func saveLocationWeather(_ weather: Weather.Overview.Response, location: WeatherLocation) -> Completable {
-        return Completable.create { observer in
-            self.backgroundContext.performWith { ctx in
-                let request: NSFetchRequest<WeatherDb> = self.getRequest(latitude: location.lat, longitude: location.lon)
-                
-                do {
-                    let results: [WeatherDb] = try ctx.fetch(request)
-                    let model: WeatherDb
+    func saveLocationWeather(_ weather: Weather.Overview.Response, location: WeatherLocation) -> AnyPublisher<Void, Error> {
+        return Deferred {
+            Future<Void, Error> { future in
+                self.backgroundContext.performWith { ctx in
+                    let request: NSFetchRequest<WeatherDb> = self.getRequest(latitude: location.lat, longitude: location.lon)
                     
-                    // Update existing model
-                    if let m = results.first {
-                        model = m
+                    do {
+                        let results: [WeatherDb] = try ctx.fetch(request)
+                        let model: WeatherDb
                         
-                        // Check if the new model is newer
-                        guard weather.current.lastUpdate > model.lastUpdate.timeIntervalSince1970 else {
-                            observer(.completed)
-                            return
-                        }
-                        
-                        // Delete existing daily for this location
-                        if let daily = model.daily as? Set<DailyWeatherDb> {
-                            daily.forEach { weather in
-                                ctx.delete(weather)
+                        // Update existing model
+                        if let m = results.first {
+                            model = m
+                            
+                            // Check if the new model is newer
+                            guard weather.current.lastUpdate > model.lastUpdate.timeIntervalSince1970 else {
+                                future(.success(()))
+                                return
+                            }
+                            
+                            // Delete existing daily for this location
+                            if let daily = model.daily as? Set<DailyWeatherDb> {
+                                daily.forEach { weather in
+                                    ctx.delete(weather)
+                                }
                             }
                         }
+                        // Create a new model
+                        else {
+                            model = NSEntityDescription.insertNewObject(forEntityName: WeatherDb.Attributes.entityName, into: ctx) as! WeatherDb
+                            model.location = try self.getDefaultWeatherLocation(location, context: ctx)
+                        }
+                        
+                        self.updateModel(model, weather: weather, location: location, context: ctx)
+                        
+                        try ctx.save()
+                        
+                        future(.success(()))
+                    } catch {
+                        print("Error saving location weather: \(error)")
+                        future(.failure(error))
                     }
-                    // Create a new model
-                    else {
-                        model = NSEntityDescription.insertNewObject(forEntityName: WeatherDb.Attributes.entityName, into: ctx) as! WeatherDb
-                        model.location = try self.getDefaultWeatherLocation(location, context: ctx)
-                    }
-                    
-                    self.updateModel(model, weather: weather, location: location, context: ctx)
-                    
-                    try ctx.save()
-                    
-                    observer(.completed)
-                } catch {
-                    print("Error saving location weather: \(error)")
-                    observer(.error(error))
                 }
             }
-            
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
     }
     
-    func loadLocationWeather(latitude: Double, longitude: Double) -> Maybe<Weather.Overview.Response> {
-        return Maybe.create { maybe in
-            self.backgroundContext.performWith { ctx in
-                let request: NSFetchRequest<WeatherDb> = self.getRequest(latitude: latitude, longitude: longitude)
-                
-                do {
-                    let results: [WeatherDb] = try ctx.fetch(request)
+    func loadLocationWeather(latitude: Double, longitude: Double) -> AnyPublisher<Weather.Overview.Response?, Error> {
+        return Deferred {
+            Future<Weather.Overview.Response?, Error> { future in
+                self.backgroundContext.performWith { ctx in
+                    let request: NSFetchRequest<WeatherDb> = self.getRequest(latitude: latitude, longitude: longitude)
                     
-                    if let model = results.first, let overview = self.getOverview(fromModel: model) {
-                        maybe(.success(overview))
-                    } else {
-                        maybe(.completed)
+                    do {
+                        let results: [WeatherDb] = try ctx.fetch(request)
+                        
+                        if let model = results.first, let overview = self.getOverview(fromModel: model) {
+                            future(.success(overview))
+                        } else {
+                            future(.success(nil))
+                        }
+                    } catch {
+                        future(.failure(error))
                     }
-                } catch {
-                    maybe(.error(error))
                 }
             }
-            
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
     }
     
     //

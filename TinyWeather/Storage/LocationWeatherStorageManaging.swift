@@ -10,12 +10,12 @@
 //  
 
 import Foundation
-import RxSwift
+import Combine
 import TWModels
 
 protocol LocationWeatherStorageManaging {
     var cacheDuration: TimeInterval { get }
     
-    func loadLocationWeather(latitude: Double, longitude: Double) -> Maybe<Weather.Overview.Response>
-    func saveLocationWeather(_ weather: Weather.Overview.Response, location: WeatherLocation) -> Completable
+    func loadLocationWeather(latitude: Double, longitude: Double) -> AnyPublisher<Weather.Overview.Response?, Error>
+    func saveLocationWeather(_ weather: Weather.Overview.Response, location: WeatherLocation) -> AnyPublisher<Void, Error>
 }
