@@ -10,6 +10,7 @@
 //  
 
 import XCTest
+import Combine
 @testable import TinyWeather
 
 class WeatherLoading_Tests: XCTestCase {
@@ -17,16 +18,19 @@ class WeatherLoading_Tests: XCTestCase {
     private var sut: WeatherLoading!
     private var storage: LocationWeatherStorageTestMock!
     private var api: RequestExecutingCurrentAndDaily!
+    private var cancellables: Set<AnyCancellable>!
 
     override func setUpWithError() throws {
         self.storage = LocationWeatherStorageTestMock()
         self.api = RequestExecutingCurrentAndDaily()
+        self.cancellables = []
         
         self.sut = WeatherLoadingService(storage: self.storage, apiService: self.api)
     }
 
     override func tearDownWithError() throws {
         self.sut = nil
+        self.cancellables.removeAll()
     }
 
     func test_no_api_request_is_made_when_cache_is_recent() throws {
@@ -38,11 +42,25 @@ class WeatherLoading_Tests: XCTestCase {
         
         self.storage.weather = Weather.Overview.Response(timezoneOffset: 0, current: current, daily: daily)
         
-        let response: Weather.Overview.Response = try self.sut.loadWeather(latitude: 0, longitude: 0).toBlocking(timeout: 1).single()
+        let expectNoApiCalls = expectation(description: "expected no api calls")
+        let expectedCachedResponse = expectation(description: "expected cached response")
         
-        XCTAssertEqual(self.api.numExecuteCalls, 0)
+        self.sut.loadWeather(latitude: 0, longitude: 0)
+            .sink(receiveCompletion: { completion in
+                if self.api.numExecuteCalls == 0 {
+                    expectNoApiCalls.fulfill()
+                }
+            }, receiveValue: { response in
+                XCTAssertEqual(response.current.lastUpdate, lastUpdate, accuracy: 0.0001)
+                expectedCachedResponse.fulfill()
+            })
+            .store(in: &self.cancellables)
         
-        XCTAssertEqual(response.current.lastUpdate, lastUpdate, accuracy: 0.0001)
+        waitForExpectations(timeout: 1) { error in
+            if let e = error {
+                XCTFail(e.localizedDescription)
+            }
+        }
     }
     
     func test_api_request_is_made_when_cache_is_not_recent() throws {
@@ -56,11 +74,25 @@ class WeatherLoading_Tests: XCTestCase {
         
         self.api.requestTimestamp = Date().timeIntervalSince1970
         
-        let response: Weather.Overview.Response = try self.sut.loadWeather(latitude: 0, longitude: 0).toBlocking(timeout: 1).single()
+        let expectApiCall = expectation(description: "expected api call to be made")
+        let expectedApiResponse = expectation(description: "expected api response")
         
-        XCTAssertEqual(self.api.numExecuteCalls, 1)
+        self.sut.loadWeather(latitude: 0, longitude: 0)
+            .sink(receiveCompletion: { completion in
+                if self.api.numExecuteCalls == 1 {
+                    expectApiCall.fulfill()
+                }
+            }, receiveValue: { response in
+                XCTAssertEqual(response.current.lastUpdate, self.api.requestTimestamp, accuracy: 0.0001)
+                expectedApiResponse.fulfill()
+            })
+            .store(in: &self.cancellables)
         
-        XCTAssertEqual(response.current.lastUpdate, self.api.requestTimestamp, accuracy: 0.0001)
+        waitForExpectations(timeout: 1) { error in
+            if let e = error {
+                XCTFail(e.localizedDescription)
+            }
+        }
     }
     
     func test_api_request_is_made_when_cache_fails() throws {
@@ -69,11 +101,25 @@ class WeatherLoading_Tests: XCTestCase {
         
         self.api.requestTimestamp = Date().timeIntervalSince1970
         
-        let response: Weather.Overview.Response = try self.sut.loadWeather(latitude: 0, longitude: 0).toBlocking(timeout: 1).single()
+        let expectApiCall = expectation(description: "expected api call to be made")
+        let expectedApiResponse = expectation(description: "expected api response")
         
-        XCTAssertEqual(self.api.numExecuteCalls, 1)
+        self.sut.loadWeather(latitude: 0, longitude: 0)
+            .sink(receiveCompletion: { completion in
+                if self.api.numExecuteCalls == 1 {
+                    expectApiCall.fulfill()
+                }
+            }, receiveValue: { response in
+                XCTAssertEqual(response.current.lastUpdate, self.api.requestTimestamp, accuracy: 0.0001)
+                expectedApiResponse.fulfill()
+            })
+            .store(in: &self.cancellables)
         
-        XCTAssertEqual(response.current.lastUpdate, self.api.requestTimestamp, accuracy: 0.0001)
+        waitForExpectations(timeout: 1) { error in
+            if let e = error {
+                XCTFail(e.localizedDescription)
+            }
+        }
     }
     
     func test_error_is_returned_when_cache_is_outdated_and_api_request_fails() throws {
@@ -88,17 +134,28 @@ class WeatherLoading_Tests: XCTestCase {
         self.api.shouldFail = true
         self.api.requestTimestamp = Date().timeIntervalSince1970
         
-        let response = self.sut.loadWeather(latitude: 0, longitude: 0).toBlocking(timeout: 1).materialize()
+        let expectApiCall = expectation(description: "expected api call to be made")
+        let expectedError = expectation(description: "expected error")
         
-        switch response {
-        case .completed(_):
-            XCTFail("should not complete")
-            
-        case .failed(_, _):
-            break
+        self.sut.loadWeather(latitude: 0, longitude: 0)
+            .sink(receiveCompletion: { completion in
+                if case .failure = completion {
+                    expectedError.fulfill()
+                }
+                
+                if self.api.numExecuteCalls == 1 {
+                    expectApiCall.fulfill()
+                }
+            }, receiveValue: { _ in
+                XCTFail("should not receive value")
+            })
+            .store(in: &self.cancellables)
+        
+        waitForExpectations(timeout: 1) { error in
+            if let e = error {
+                XCTFail(e.localizedDescription)
+            }
         }
-        
-        XCTAssertEqual(self.api.numExecuteCalls, 1)
     }
     
 }
