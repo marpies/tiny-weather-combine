@@ -11,63 +11,64 @@
 
 import Foundation
 import CoreData
-import RxSwift
+import Combine
 import TWModels
 
 extension CoreDataService: DefaultLocationStorageManaging {
     
-    var defaultLocation: Maybe<WeatherLocation> {
-        return Maybe.create { maybe in
-            self.backgroundContext.performWith { ctx in
-                let request = NSFetchRequest<LocationDb>(entityName: LocationDb.Attributes.entityName)
-                request.predicate = NSPredicate(format: "isDefault == true")
-                request.fetchLimit = 1
-                
-                do {
-                    let results: [LocationDb] = try ctx.fetch(request)
-                    if let model = results.first?.model {
-                        maybe(.success(model))
-                    } else {
-                        maybe(.completed)
+    var defaultLocation: AnyPublisher<WeatherLocation?, Error> {
+        return Deferred {
+            Future<WeatherLocation?, Error> { future in
+                self.backgroundContext.performWith { ctx in
+                    let request = NSFetchRequest<LocationDb>(entityName: LocationDb.Attributes.entityName)
+                    request.predicate = NSPredicate(format: "isDefault == true")
+                    request.fetchLimit = 1
+                    
+                    do {
+                        let results: [LocationDb] = try ctx.fetch(request)
+                        if let model = results.first?.model {
+                            future(.success(model))
+                        } else {
+                            future(.success(nil))
+                        }
+                    } catch {
+                        future(.failure(error))
                     }
-                } catch {
-                    maybe(.error(error))
                 }
             }
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
     }
     
-    func saveDefaultLocation(_ location: WeatherLocation) -> Completable {
-        return Completable.create { observer in
-            self.backgroundContext.performWith { ctx in
-                do {
-                    // Remove default flag from existing default location model
-                    try self.clearDefaultLocation(context: ctx)
-                    
-                    // Set the default flag on the new location
-                    // Update existing model or create a new one
-                    let existing: LocationDb? = try self.loadLocation(latitude: location.lat, longitude: location.lon, context: ctx)
-                    let model: LocationDb = existing ?? NSEntityDescription.insertNewObject(forEntityName: LocationDb.Attributes.entityName, into: ctx) as! LocationDb
-                    
-                    model.name = location.name
-                    model.country = location.country
-                    model.state = location.state
-                    model.lon = location.lon
-                    model.lat = location.lat
-                    model.isDefault = true
-                    
-                    try ctx.saveIfNeeded()
-                    
-                    observer(.completed)
-                } catch {
-                    print("Error saving default location: \(error)")
-                    observer(.error(error))
+    func saveDefaultLocation(_ location: WeatherLocation) -> AnyPublisher<Void, Error> {
+        return Deferred {
+            Future<Void, Error> { future in
+                self.backgroundContext.performWith { ctx in
+                    do {
+                        // Remove default flag from existing default location model
+                        try self.clearDefaultLocation(context: ctx)
+                        
+                        // Set the default flag on the new location
+                        // Update existing model or create a new one
+                        let existing: LocationDb? = try self.loadLocation(latitude: location.lat, longitude: location.lon, context: ctx)
+                        let model: LocationDb = existing ?? NSEntityDescription.insertNewObject(forEntityName: LocationDb.Attributes.entityName, into: ctx) as! LocationDb
+                        
+                        model.name = location.name
+                        model.country = location.country
+                        model.state = location.state
+                        model.lon = location.lon
+                        model.lat = location.lat
+                        model.isDefault = true
+                        
+                        try ctx.saveIfNeeded()
+                        
+                        future(.success(()))
+                    } catch {
+                        print("Error saving default location: \(error)")
+                        future(.failure(error))
+                    }
                 }
             }
-            
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
     }
     
     //

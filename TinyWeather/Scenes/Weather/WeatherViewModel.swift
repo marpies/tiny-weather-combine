@@ -17,6 +17,7 @@ import TWThemes
 import TWExtensions
 import TWModels
 import TWRoutes
+import Combine
 
 protocol WeatherViewModelInputs {
     var panGestureDidBegin: PublishRelay<Void> { get }
@@ -50,6 +51,7 @@ protocol WeatherViewModelProtocol {
 class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, WeatherViewModelOutputs, WeatherConditionPresenting, TemperaturePresenting, WindSpeedPresenting,
                         RainAmountPresenting, SnowAmountPresenting {
     
+    private var cancellables: Set<AnyCancellable> = []
     private let disposeBag: DisposeBag = DisposeBag()
     private let dateFormatter: DateFormatter = DateFormatter()
     
@@ -266,7 +268,9 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
         self.model.location.accept(location)
         
         // Save this location as default now (i.e. last one shown)
-        self.storage.saveDefaultLocation(location).subscribe().disposed(by: self.disposeBag)
+        self.storage.saveDefaultLocation(location)
+            .sink(receiveCompletion: { _ in }, receiveValue: { })
+            .store(in: &self.cancellables)
         
         // Set loading state
         self._state.accept(.loading)

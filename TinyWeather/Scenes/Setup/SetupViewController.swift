@@ -11,11 +11,11 @@
 
 import UIKit
 import SnapKit
-import RxSwift
+import Combine
 
 class SetupViewController: UIViewController {
     
-    private let disposeBag: DisposeBag = DisposeBag()
+    private var cancellables: Set<AnyCancellable> = []
     private let imageView: UIImageView = UIImageView()
     
     private let viewModel: SetupViewModelProtocol
@@ -67,7 +67,7 @@ class SetupViewController: UIViewController {
             })
         }, completion: { _ in
             let inputs: SetupViewModelInputs = self.viewModel.inputs
-            inputs.viewDidLoad.accept(())
+            inputs.viewDidLoad.send(())
         })
     }
     
@@ -92,10 +92,10 @@ class SetupViewController: UIViewController {
         let outputs: SetupViewModelOutputs = self.viewModel.outputs
         
         outputs.launchImageName
-            .subscribe(onNext: { [weak self] (name) in
+            .sink(receiveValue: {[weak self] (name) in
                 self?.displayLaunchImage(named: name)
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
     }
     
 }

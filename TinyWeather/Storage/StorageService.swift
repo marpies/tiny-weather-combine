@@ -10,10 +10,10 @@
 //  
 
 import Foundation
-import RxSwift
+import Combine
 
 protocol StorageService: DefaultLocationStorageManaging {
     
-    var initialize: Completable { get }
+    var initialize: AnyPublisher<Void, Error> { get }
     
 }

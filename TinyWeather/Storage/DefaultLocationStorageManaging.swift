@@ -10,11 +10,11 @@
 //  
 
 import Foundation
-import RxSwift
+import Combine
 import TWModels
 
 protocol DefaultLocationStorageManaging {
-    var defaultLocation: Maybe<WeatherLocation> { get }
+    var defaultLocation: AnyPublisher<WeatherLocation?, Error> { get }
     
-    func saveDefaultLocation(_ location: WeatherLocation) -> Completable
+    func saveDefaultLocation(_ location: WeatherLocation) -> AnyPublisher<Void, Error>
 }
