@@ -1,0 +1,52 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "RxGesture",
+        "repositoryURL": "https://github.com/RxSwiftCommunity/RxGesture.git",
+        "state": {
+          "branch": null,
+          "revision": "53ebed7fe3f15021bf518d9d1e8b147e2ddffa0a",
+          "version": "4.0.3"
+        }
+      },
+      {
+        "package": "RxSwift",
+        "repositoryURL": "https://github.com/ReactiveX/RxSwift.git",
+        "state": {
+          "branch": null,
+          "revision": "b4307ba0b6425c0ba4178e138799946c3da594f8",
+          "version": "6.5.0"
+        }
+      },
+      {
+        "package": "SnapKit",
+        "repositoryURL": "https://github.com/SnapKit/SnapKit.git",
+        "state": {
+          "branch": null,
+          "revision": "d458564516e5676af9c70b4f4b2a9178294f1bc6",
+          "version": "5.0.1"
+        }
+      },
+      {
+        "package": "Swinject",
+        "repositoryURL": "https://github.com/Swinject/Swinject.git",
+        "state": {
+          "branch": null,
+          "revision": "f10b6e9ebff440f985c43008f7c2d097639fcb81",
+          "version": "2.8.1"
+        }
+      },
+      {
+        "package": "TinyWeatherCommon",
+        "repositoryURL": "https://github.com/marpies/tiny-weather-common.git",
+        "state": {
+          "branch": null,
+          "revision": "2031d8070d2ef08e6f09384946fd18e472c3b0e9",
+          "version": "1.0.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

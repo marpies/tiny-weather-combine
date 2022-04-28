@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19574" systemVersion="20G417" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="DailyWeatherDb" representedClassName=".DailyWeatherDb" syncable="YES">
+        <attribute name="condition" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="maxTemperature" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="minTemperature" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="rainAmount" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="snowAmount" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="windSpeed" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="location" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="WeatherDb" inverseName="daily" inverseEntity="WeatherDb"/>
+    </entity>
+    <entity name="LocationDb" representedClassName=".LocationDb" syncable="YES">
+        <attribute name="country" attributeType="String"/>
+        <attribute name="isDefault" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isFavorite" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="lat" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="lon" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="state" optional="YES" attributeType="String"/>
+        <relationship name="weather" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="WeatherDb" inverseName="location" inverseEntity="WeatherDb"/>
+    </entity>
+    <entity name="WeatherDb" representedClassName=".WeatherDb" syncable="YES">
+        <attribute name="condition" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="conditionDescription" attributeType="String"/>
+        <attribute name="isNight" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="lastUpdate" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="rainAmount" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="snowAmount" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="sunrise" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="sunset" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="temperature" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="timezoneOffset" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="windSpeed" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="daily" toMany="YES" deletionRule="Nullify" destinationEntity="DailyWeatherDb" inverseName="location" inverseEntity="DailyWeatherDb"/>
+        <relationship name="location" maxCount="1" deletionRule="Nullify" destinationEntity="LocationDb" inverseName="weather" inverseEntity="LocationDb"/>
+    </entity>
+    <elements>
+        <element name="DailyWeatherDb" positionX="-63" positionY="18" width="128" height="149"/>
+        <element name="LocationDb" positionX="-63" positionY="-18" width="128" height="149"/>
+        <element name="WeatherDb" positionX="-54" positionY="54" width="128" height="224"/>
+    </elements>
+</model>

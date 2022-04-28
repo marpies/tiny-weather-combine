@@ -1,0 +1,44 @@
+//
+//  Localizable.strings
+//  TinyWeather
+//
+//  Created by Marcel Piešťanský.
+//  Copyright © 2022 Marcel Piestansky. All rights reserved.
+//
+//  This program is free software. You can redistribute and/or modify it in
+//  accordance with the terms of the accompanying license agreement.
+//
+
+//
+// MARK: - Search
+//
+
+"searchInputPlaceholder" = "Search for location";
+"searchHintsNoResultsMessage" = "Location not found";
+"searchHintsErrorMessage" = "Error looking up locations";
+"searchDeviceLocationButton" = "Your location";
+"numberOfFavoritesTitle" = "Favorites (%d)";
+"noFavoritesMessage" = "Your favorite locations will appear here.";
+"favoriteLocationRemoveButton" = "Remove";
+
+//
+// MARK: - Misc
+//
+
+"latitudeNorthAbbreviation" = "N";
+"latitudeSouthAbbreviation" = "S";
+"longitudeEastAbbreviation" = "E";
+"longitudeWestAbbreviation" = "W";
+"okAlertButton" = "OK";
+
+//
+// MARK: - Weather
+//
+
+"currentWeatherLastUpdateTimeTitle" = "Last updated:";
+"currentWeatherLastUpdateJustNowText" = "Just now";
+"locationAddToFavoritesButton" = "Add to favorites";
+"locationRemoveFromFavoritesButton" = "Remove from favorites";
+"locationFavoriteErrorTitle" = "Error";
+"locationFavoriteErrorMessage" = "There was an unexpected error updating the favorites. Please try again.";
+"weatherLoadErrorMessage" = "There was an error loading the weather.";

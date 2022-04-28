@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>TWDefaultLocationName</key>
+	<string>Cupertino</string>
+	<key>TWDefaultLocationState</key>
+	<string>California</string>
+	<key>TWDefaultLocationCountry</key>
+	<string>US</string>
+	<key>TWDefaultLocationLatitude</key>
+	<string>37.3228934</string>
+	<key>TWDefaultLocationLongitude</key>
+	<string>-122.0322895</string>
+</dict>
+</plist>
