@@ -10,7 +10,7 @@
 //  
 
 import Foundation
-import RxSwift
+import Combine
 
 struct WeatherLoadingService: WeatherLoading {
     
@@ -22,48 +22,40 @@ struct WeatherLoadingService: WeatherLoading {
         self.apiService = apiService
     }
     
-    func loadWeather(latitude: Double, longitude: Double) -> Single<Weather.Overview.Response> {
-        return Single.create { single in
-            // Load storage first, then API if no cache recent exists
-            let loader = self.storage.loadLocationWeather(latitude: latitude, longitude: longitude)
-                .filter({ (weather) in
-                    self.isCacheRecent(weather.current)
-                })
-                .asObservable()
-                .first()
-                .catchAndReturn(nil)
-                .flatMap({ (r: Weather.Overview.Response?) -> Single<Weather.Overview.Response> in
-                    // Use the recent cache if we have it
-                    if let response = r {
-                        return Single.just(response)
-                    }
-                    
-                    // Make an API call if needed
-                    return self.apiService
-                        .execute(request: APIResource.currentAndDaily(lat: latitude, lon: longitude))
-                        .map({ (response: HTTPResponse) in
-                            try response.map(to: Weather.Overview.Response.self)
-                        })
-                })
-            
-            let disposable = loader
-                .subscribe(onSuccess: { weather in
-                    single(.success(weather))
-                }, onFailure: { error in
-                    single(.failure(error))
-                })
-            
-            return Disposables.create {
-                disposable.dispose()
-            }
-        }
+    func loadWeather(latitude: Double, longitude: Double) -> AnyPublisher<Weather.Overview.Response, Error> {
+        return self.storage.loadLocationWeather(latitude: latitude, longitude: longitude)
+            .map({ (weather: Weather.Overview.Response?) -> Weather.Overview.Response? in
+                if self.isCacheRecent(weather?.current) {
+                    return weather
+                }
+                return nil
+            })
+            .catch({ _ in
+                Just(nil)
+            })
+            .setFailureType(to: Error.self)
+            .flatMap({ (r: Weather.Overview.Response?) -> AnyPublisher<Weather.Overview.Response, Error> in
+                if let response = r {
+                    return Just(response).setFailureType(to: Error.self).eraseToAnyPublisher()
+                }
+                
+                return self.apiService
+                    .execute(request: APIResource.currentAndDaily(lat: latitude, lon: longitude))
+                    .tryMap({ (response: HTTPResponse) in
+                        try response.map(to: Weather.Overview.Response.self)
+                    })
+                    .eraseToAnyPublisher()
+            })
+            .eraseToAnyPublisher()
     }
     
     //
     // MARK: - Private
     //
     
-    private func isCacheRecent(_ weather: Weather.Current.Response) -> Bool {
+    private func isCacheRecent(_ weather: Weather.Current.Response?) -> Bool {
+        guard let weather = weather else { return false }
+        
         let threshold: TimeInterval = Date().timeIntervalSince1970 - self.storage.cacheDuration
         return weather.lastUpdate > threshold
     }

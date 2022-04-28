@@ -10,8 +10,8 @@
 //  
 
 import Foundation
-import RxSwift
+import Combine
 
 protocol WeatherLoading {
-    func loadWeather(latitude: Double, longitude: Double) -> Single<Weather.Overview.Response>
+    func loadWeather(latitude: Double, longitude: Double) -> AnyPublisher<Weather.Overview.Response, Error>
 }
