@@ -10,30 +10,44 @@
 //  
 
 import XCTest
-import RxSwift
+import Combine
 @testable import TinyWeather
 
 class CoreDataService_StorageService_Tests: XCTestCase {
     
     private var sut: StorageService!
+    private var cancellables: Set<AnyCancellable>!
 
     override func setUpWithError() throws {
         let store = CoreDataStore(inMemory: true)
         self.sut = CoreDataService(store: store)
+        self.cancellables = []
     }
 
     override func tearDownWithError() throws {
         self.sut = nil
+        self.cancellables.removeAll()
     }
 
     func testInitialize() throws {
-        let initialize = self.sut.initialize.toBlocking(timeout: 1).materialize()
+        let expect = expectation(description: #function)
         
-        switch initialize {
-        case .completed(_):
-            break
-        case .failed(_, let error):
-            XCTFail(error.localizedDescription)
+        self.sut.initialize
+            .sink(receiveCompletion: { completion in
+                switch completion {
+                case .failure(let error):
+                    XCTFail(error.localizedDescription)
+                    
+                case .finished:
+                    expect.fulfill()
+                }
+            }, receiveValue: { })
+            .store(in: &self.cancellables)
+        
+        waitForExpectations(timeout: 1) { error in
+            if let e = error {
+                XCTFail(e.localizedDescription)
+            }
         }
     }
 

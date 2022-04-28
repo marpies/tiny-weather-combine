@@ -12,6 +12,7 @@
 import Foundation
 import RxSwift
 import TWModels
+import Combine
 @testable import TinyWeather
 
 class WeatherStorageMock: WeatherStorageManaging {
@@ -23,33 +24,34 @@ class WeatherStorageMock: WeatherStorageManaging {
     var cacheDuration: TimeInterval = 0
     
     var numDefaultLocationCalls: Int = 0
-    var defaultLocation: Maybe<WeatherLocation> {
-        Maybe.create { maybe in
-            self.numDefaultLocationCalls += 1
-            if let location = self.defaultLocationResponse {
-                maybe(.success(location))
-            } else if self.shouldFail {
-                maybe(.error(MockError.forcedError))
-            } else {
-                maybe(.completed)
+    var defaultLocation: AnyPublisher<WeatherLocation?, Error> {
+        Deferred {
+            Future<WeatherLocation?, Error> { future in
+                self.numDefaultLocationCalls += 1
+                if let location = self.defaultLocationResponse {
+                    future(.success(location))
+                } else if self.shouldFail {
+                    future(.failure(MockError.forcedError))
+                } else {
+                    future(.success(nil))
+                }
             }
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
     }
     
     var numSaveDefaultLocationCalls: Int = 0
-    func saveDefaultLocation(_ location: WeatherLocation) -> Completable {
-        Completable.create { observer in
-            self.numSaveDefaultLocationCalls += 1
-            
-            if self.shouldFail {
-                observer(.error(MockError.forcedError))
-            } else {
-                observer(.completed)
+    func saveDefaultLocation(_ location: WeatherLocation) -> AnyPublisher<Void, Error> {
+        Deferred {
+            Future<Void, Error> { future in
+                self.numSaveDefaultLocationCalls += 1
+                
+                if self.shouldFail {
+                    future(.failure(MockError.forcedError))
+                } else {
+                    future(.success(()))
+                }
             }
-            
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
     }
     
     var numLoadLocationWeatherCalls: Int = 0
