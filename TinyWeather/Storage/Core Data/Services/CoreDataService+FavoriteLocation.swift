@@ -10,63 +10,66 @@
 //  
 
 import Foundation
-import RxSwift
+import Combine
 import TWModels
 import CoreData
 
 extension CoreDataService: FavoriteLocationStorageManaging {
     
-    func loadLocationFavoriteStatus(_ location: WeatherLocation) -> Single<Bool> {
-        Single.create { single in
-            self.backgroundContext.performWith { ctx in
-                do {
-                    let model: LocationDb? = try self.loadLocation(latitude: location.lat, longitude: location.lon, context: ctx)
-                    let isFavorite: Bool = model?.isFavorite ?? false
-                    single(.success(isFavorite))
-                } catch {
-                    single(.failure(error))
-                }
-            }
-            return Disposables.create()
-        }
-    }
-    
-    func saveLocationFavoriteStatus(_ location: WeatherLocation, isFavorite: Bool) -> Single<Bool> {
-        Single.create { single in
-            self.backgroundContext.performWith { ctx in
-                do {
-                    if let model = try self.loadLocation(latitude: location.lat, longitude: location.lon, context: ctx) {
-                        model.isFavorite = isFavorite
-                        
-                        try ctx.saveIfNeeded()
-                        
-                        single(.success(isFavorite))
-                    } else {
-                        single(.success(false))
+    func loadLocationFavoriteStatus(_ location: WeatherLocation) -> AnyPublisher<Bool, Error> {
+        Deferred {
+            Future<Bool, Error> { future in
+                self.backgroundContext.performWith { ctx in
+                    do {
+                        let model: LocationDb? = try self.loadLocation(latitude: location.lat, longitude: location.lon, context: ctx)
+                        let isFavorite: Bool = model?.isFavorite ?? false
+                        future(.success(isFavorite))
+                    } catch {
+                        future(.failure(error))
                     }
-                } catch {
-                    single(.failure(error))
                 }
             }
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
     }
     
-    func loadFavoriteLocations() -> Single<[WeatherLocation]> {
-        Single.create { single in
-            self.backgroundContext.performWith { ctx in
-                do {
-                    let request: NSFetchRequest<LocationDb> = NSFetchRequest(entityName: LocationDb.Attributes.entityName)
-                    request.predicate = NSPredicate(format: "isFavorite == true")
-                    
-                    let locations: [LocationDb.Model] = try ctx.fetch(request).map { $0.model }
-                    single(.success(locations))
-                } catch {
-                    single(.failure(error))
+    func saveLocationFavoriteStatus(_ location: WeatherLocation, isFavorite: Bool) -> AnyPublisher<Bool, Error> {
+        Deferred {
+            Future<Bool, Error> { future in
+                self.backgroundContext.performWith { ctx in
+                    do {
+                        if let model = try self.loadLocation(latitude: location.lat, longitude: location.lon, context: ctx) {
+                            model.isFavorite = isFavorite
+                            
+                            try ctx.saveIfNeeded()
+                            
+                            future(.success(isFavorite))
+                        } else {
+                            future(.success(false))
+                        }
+                    } catch {
+                        future(.failure(error))
+                    }
                 }
             }
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
+    }
+    
+    func loadFavoriteLocations() -> AnyPublisher<[WeatherLocation], Error> {
+        Deferred {
+            Future<[WeatherLocation], Error> { future in
+                self.backgroundContext.performWith { ctx in
+                    do {
+                        let request: NSFetchRequest<LocationDb> = NSFetchRequest(entityName: LocationDb.Attributes.entityName)
+                        request.predicate = NSPredicate(format: "isFavorite == true")
+                        
+                        let locations: [LocationDb.Model] = try ctx.fetch(request).map { $0.model }
+                        future(.success(locations))
+                    } catch {
+                        future(.failure(error))
+                    }
+                }
+            }
+        }.eraseToAnyPublisher()
     }
     
 }

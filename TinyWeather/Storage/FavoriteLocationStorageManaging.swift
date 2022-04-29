@@ -10,11 +10,11 @@
 //  
 
 import Foundation
-import RxSwift
+import Combine
 import TWModels
 
 protocol FavoriteLocationStorageManaging {
-    func loadLocationFavoriteStatus(_ location: WeatherLocation) -> Single<Bool>
-    func saveLocationFavoriteStatus(_ location: WeatherLocation, isFavorite: Bool) -> Single<Bool>
-    func loadFavoriteLocations() -> Single<[WeatherLocation]>
+    func loadLocationFavoriteStatus(_ location: WeatherLocation) -> AnyPublisher<Bool, Error>
+    func saveLocationFavoriteStatus(_ location: WeatherLocation, isFavorite: Bool) -> AnyPublisher<Bool, Error>
+    func loadFavoriteLocations() -> AnyPublisher<[WeatherLocation], Error>
 }
