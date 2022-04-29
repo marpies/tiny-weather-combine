@@ -10,8 +10,7 @@
 //  
 
 import XCTest
-import RxSwift
-import RxBlocking
+import Combine
 import CoreData
 import TWModels
 @testable import TinyWeather
@@ -19,75 +18,66 @@ import TWModels
 class CoreDataService_FavoriteLocation_Tests: XCTestCase, CoreDataTestingSetup {
     
     private var sut: FavoriteLocationStorageManaging!
+    private var cancellables: Set<AnyCancellable>!
     
     var context: NSManagedObjectContext!
     
     override func setUpWithError() throws {
         self.sut = try self.setupPersistentCoreData()
+        self.cancellables = []
     }
     
     override func tearDownWithError() throws {
         self.sut = nil
         self.context = nil
+        self.cancellables.removeAll()
     }
 
     func testFavoriteStatusNonExistentLocation() throws {
         let location: WeatherLocation = TestLocations.location1
         
-        let nonExistent = try self.sut.loadLocationFavoriteStatus(location)
-            .toBlocking(timeout: 1)
-            .single()
+        let result = try awaitPublisher(self.sut.loadLocationFavoriteStatus(location))
         
-        XCTAssertFalse(nonExistent)
+        XCTAssertFalse(try result.get())
     }
     
     func testLoadFavoriteStatusForLocation() throws {
         let location1: WeatherLocation = TestLocations.location1
         
-        let nonExistent = try self.sut.loadLocationFavoriteStatus(location1)
-            .toBlocking(timeout: 1)
-            .single()
+        let nonexistent = try awaitPublisher(self.sut.loadLocationFavoriteStatus(location1)).get()
         
-        XCTAssertFalse(nonExistent)
+        XCTAssertFalse(nonexistent)
         
         CoreDataTestModels.createLocation(location1, isDefault: false, isFavorite: true, context: self.context)
         
-        let location1Status = try self.sut.loadLocationFavoriteStatus(location1)
-            .toBlocking(timeout: 1)
-            .single()
+        let existent = try awaitPublisher(self.sut.loadLocationFavoriteStatus(location1)).get()
         
-        XCTAssertTrue(location1Status)
+        XCTAssertTrue(existent)
         
         let location2: WeatherLocation = TestLocations.location2
         
         CoreDataTestModels.createLocation(location2, isDefault: false, isFavorite: false, context: self.context)
         
-        let location2Status = try self.sut.loadLocationFavoriteStatus(location2)
-            .toBlocking(timeout: 1)
-            .single()
+        let nonexistent2 = try awaitPublisher(self.sut.loadLocationFavoriteStatus(location2)).get()
         
-        XCTAssertFalse(location2Status)
+        XCTAssertFalse(nonexistent2)
     }
     
     func testLoadFavoriteLocations() throws {
-        let noLocations = try self.sut.loadFavoriteLocations()
-            .toBlocking(timeout: 1)
-            .single()
-        
-        XCTAssertTrue(noLocations.isEmpty)
-        
         let location1: WeatherLocation = TestLocations.location1
         let location2: WeatherLocation = TestLocations.location2
+        
+        let initialLocations = try awaitPublisher(self.sut.loadFavoriteLocations()).get()
+        
+        XCTAssertTrue(initialLocations.isEmpty)
         
         CoreDataTestModels.createLocation(location1, isDefault: false, isFavorite: true, context: self.context)
         CoreDataTestModels.createLocation(location2, isDefault: false, isFavorite: true, context: self.context)
         CoreDataTestModels.createLocation(location2, isDefault: false, isFavorite: false, context: self.context)
         
-        let locations = try self.sut.loadFavoriteLocations()
-            .toBlocking(timeout: 1)
-            .single()
+        let newLocations = try awaitPublisher(self.sut.loadFavoriteLocations()).get()
         
-        XCTAssertEqual(locations.count, 2)
+        XCTAssertEqual(newLocations.count, 2)
     }
     
     func testSaveFavoriteStatusForLocation() throws {
@@ -110,9 +100,9 @@ class CoreDataService_FavoriteLocation_Tests: XCTestCase, CoreDataTestingSetup {
             }
         }
         
-        let isFavorite = try self.sut.saveLocationFavoriteStatus(location, isFavorite: true).toBlocking(timeout: 1).single()
+        let makeFavorite = try awaitPublisher(self.sut.saveLocationFavoriteStatus(location, isFavorite: true)).get()
         
-        XCTAssertTrue(isFavorite)
+        XCTAssertTrue(makeFavorite)
         
         self.context.performAndWaitWith { ctx in
             do {
@@ -125,9 +115,9 @@ class CoreDataService_FavoriteLocation_Tests: XCTestCase, CoreDataTestingSetup {
             }
         }
         
-        let isNotFavorite = try self.sut.saveLocationFavoriteStatus(location, isFavorite: false).toBlocking(timeout: 1).single()
+        let makeNotFavorite = try awaitPublisher(self.sut.saveLocationFavoriteStatus(location, isFavorite: false)).get()
         
-        XCTAssertFalse(isNotFavorite)
+        XCTAssertFalse(makeNotFavorite)
         
         self.context.performAndWaitWith { ctx in
             do {
