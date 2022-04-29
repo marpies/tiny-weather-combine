@@ -128,6 +128,7 @@
 		C399D28B281AA3ED00845F7F /* TWThemes in Frameworks */ = {isa = PBXBuildFile; productRef = C399D28A281AA3ED00845F7F /* TWThemes */; };
 		C399D28D281B140000845F7F /* Publisher+Driver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C399D28C281B140000845F7F /* Publisher+Driver.swift */; };
 		C399D28F281B141700845F7F /* CurrentValueSubject+Driver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C399D28E281B141700845F7F /* CurrentValueSubject+Driver.swift */; };
+		C399D292281BD7F700845F7F /* CombineCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = C399D291281BD7F700845F7F /* CombineCocoa */; };
 		C399D294281BD92A00845F7F /* Publisher+AssignTo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C399D293281BD92A00845F7F /* Publisher+AssignTo.swift */; };
 		C3A64AC928054ED2001B0683 /* TWExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = C3A64AC828054ED2001B0683 /* TWExtensions */; };
 		C3A64ACB2805608A001B0683 /* TWModels in Frameworks */ = {isa = PBXBuildFile; productRef = C3A64ACA2805608A001B0683 /* TWModels */; };
@@ -334,6 +335,7 @@
 				C3A64AC928054ED2001B0683 /* TWExtensions in Frameworks */,
 				C399D27F281AA34D00845F7F /* TWExtensions in Frameworks */,
 				C3A64ACB2805608A001B0683 /* TWModels in Frameworks */,
+				C399D292281BD7F700845F7F /* CombineCocoa in Frameworks */,
 				C399D281281AA34D00845F7F /* TWRoutes in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -848,6 +850,7 @@
 				C399D27E281AA34D00845F7F /* TWExtensions */,
 				C399D280281AA34D00845F7F /* TWRoutes */,
 				C399D282281AA34D00845F7F /* TWModels */,
+				C399D291281BD7F700845F7F /* CombineCocoa */,
 			);
 			productName = TinyWeather;
 			productReference = C365225A27BE438400E6AF39 /* TinyWeather.app */;
@@ -938,6 +941,7 @@
 				C365229627BE447400E6AF39 /* XCRemoteSwiftPackageReference "SnapKit" */,
 				C36522C127BEDE0C00E6AF39 /* XCRemoteSwiftPackageReference "RxGesture" */,
 				C399D27B281AA34D00845F7F /* XCRemoteSwiftPackageReference "tiny-weather-common" */,
+				C399D290281BD7F700845F7F /* XCRemoteSwiftPackageReference "CombineCocoa" */,
 			);
 			productRefGroup = C365225B27BE438400E6AF39 /* Products */;
 			projectDirPath = "";
@@ -1612,6 +1616,14 @@
 				minimumVersion = 1.0.0;
 			};
 		};
+		C399D290281BD7F700845F7F /* XCRemoteSwiftPackageReference "CombineCocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/CombineCommunity/CombineCocoa.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.4.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1714,6 +1726,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C399D27B281AA34D00845F7F /* XCRemoteSwiftPackageReference "tiny-weather-common" */;
 			productName = TWThemes;
+		};
+		C399D291281BD7F700845F7F /* CombineCocoa */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C399D290281BD7F700845F7F /* XCRemoteSwiftPackageReference "CombineCocoa" */;
+			productName = CombineCocoa;
 		};
 		C3A64AC828054ED2001B0683 /* TWExtensions */ = {
 			isa = XCSwiftPackageProductDependency;
