@@ -13,7 +13,7 @@ import XCTest
 import TWThemes
 import TWRoutes
 import TWModels
-import RxSwift
+import Combine
 @testable import TinyWeather
 
 class WeatherViewModel_Tests: XCTestCase, WeatherConditionPresenting, WindSpeedPresenting, RainAmountPresenting, SnowAmountPresenting {
@@ -25,7 +25,7 @@ class WeatherViewModel_Tests: XCTestCase, WeatherConditionPresenting, WindSpeedP
     private var router: WeakRouter<AppRoute>!
     private var storage: WeatherStorageMock!
     private var dateFormatter: DateFormatter!
-    private var disposeBag: DisposeBag! = DisposeBag()
+    private var cancellables: Set<AnyCancellable>!
 
     override func setUpWithError() throws {
         self.weatherLoader = WeatherLoadingMock()
@@ -40,17 +40,20 @@ class WeatherViewModel_Tests: XCTestCase, WeatherConditionPresenting, WindSpeedP
         self.dateFormatter.dateStyle = .none
         self.dateFormatter.timeZone = TimeZone(abbreviation: "UTC")!
         self.dateFormatter.locale = Locale.current
+        self.cancellables = []
     }
 
     override func tearDownWithError() throws {
-        self.disposeBag = nil
+        self.cancellables = nil
     }
 
     func test_actions_called_after_calling_load_weather() throws {
         let location: WeatherLocation = TestLocations.location1
         let outputs = self.sut.outputs
         
-        XCTAssertEqual(try outputs.state.toBlocking().first()!, .loading)
+        let state = try awaitPublisher(outputs.state.first()).get()
+        
+        XCTAssertEqual(state, .loading)
         XCTAssertEqual(self.weatherLoader.numLoadWeatherCalls, 0)
         XCTAssertEqual(self.weatherLoader.numLoadWeatherSubscriptions, 0)
         XCTAssertEqual(self.storage.numSaveDefaultLocationCalls, 0)
@@ -61,7 +64,7 @@ class WeatherViewModel_Tests: XCTestCase, WeatherConditionPresenting, WindSpeedP
         XCTAssertEqual(self.weatherLoader.numLoadWeatherSubscriptions, 1)
         XCTAssertEqual(self.storage.numSaveDefaultLocationCalls, 1)
         
-        let locationVM = try outputs.locationInfo.toBlocking().first()!
+        let locationVM = try awaitPublisher(outputs.locationInfo.first()).get()
         XCTAssertEqual(locationVM.title, location.name)
         XCTAssertEqual(locationVM.subtitle, "\(location.state!), \(location.country)")
     }
@@ -70,16 +73,21 @@ class WeatherViewModel_Tests: XCTestCase, WeatherConditionPresenting, WindSpeedP
         let location: WeatherLocation = TestLocations.location1
         let outputs = self.sut.outputs
         
-        XCTAssertEqual(try outputs.state.toBlocking().first()!, .loading)
+        let stateInit = try awaitPublisher(outputs.state.first()).get()
+        
+        XCTAssertEqual(stateInit, .loading)
         
         self.sut.loadWeather(forLocation: location)
         
         let expect = expectation(description: #function)
-        outputs.state.drive(onNext: { state in
-            if state == .loaded {
-                expect.fulfill()
-            }
-        }).disposed(by: self.disposeBag)
+        
+        outputs.state
+            .sink(receiveValue: { state in
+                if state == .loaded {
+                    expect.fulfill()
+                }
+            })
+            .store(in: &self.cancellables)
         
         waitForExpectations(timeout: 1) { error in
             if let e = error {
@@ -92,17 +100,22 @@ class WeatherViewModel_Tests: XCTestCase, WeatherConditionPresenting, WindSpeedP
         let location: WeatherLocation = TestLocations.location1
         let outputs = self.sut.outputs
         
-        XCTAssertEqual(try outputs.state.toBlocking().first()!, .loading)
+        let stateInit = try awaitPublisher(outputs.state.first()).get()
+        
+        XCTAssertEqual(stateInit, .loading)
         
         self.weatherLoader.shouldFail = true
         self.sut.loadWeather(forLocation: location)
         
         let expect = expectation(description: #function)
-        outputs.state.drive(onNext: { state in
-            if state == .error {
-                expect.fulfill()
-            }
-        }).disposed(by: self.disposeBag)
+        
+        outputs.state
+            .sink(receiveValue: { state in
+                if state == .error {
+                    expect.fulfill()
+                }
+            })
+            .store(in: &self.cancellables)
         
         waitForExpectations(timeout: 1) { error in
             if let e = error {
@@ -120,7 +133,7 @@ class WeatherViewModel_Tests: XCTestCase, WeatherConditionPresenting, WindSpeedP
         let expect = expectation(description: #function)
         
         outputs.currentWeather
-            .drive(onNext: { currentWeather in
+            .sink(receiveValue: { currentWeather in
                 XCTAssertEqual(currentWeather.attributes.count, 4)
                 XCTAssertEqual(currentWeather.description, "Rainy")
                 XCTAssertEqual(currentWeather.temperature, "10°C")
@@ -145,7 +158,7 @@ class WeatherViewModel_Tests: XCTestCase, WeatherConditionPresenting, WindSpeedP
                 
                 expect.fulfill()
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         waitForExpectations(timeout: 1) { error in
             if let e = error {
@@ -168,15 +181,15 @@ class WeatherViewModel_Tests: XCTestCase, WeatherConditionPresenting, WindSpeedP
         let expectNewDailyWeather = expectation(description: #function)
         
         outputs.dailyWeatherWillRefresh
-            .drive(onNext: {
+            .sink(receiveValue: {
                 XCTAssertFalse(didReceiveDailyWeather)
                 
                 expectDailyWeatherWillRefresh.fulfill()
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         outputs.newDailyWeather
-            .drive(onNext: { weather in
+            .sink(receiveValue: { weather in
                 didReceiveDailyWeather = true
                 
                 let response = self.weatherLoader.weather.daily[numDailyWeathersReceived]
@@ -204,7 +217,7 @@ class WeatherViewModel_Tests: XCTestCase, WeatherConditionPresenting, WindSpeedP
                     expectNewDailyWeather.fulfill()
                 }
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         waitForExpectations(timeout: 1) { error in
             if let e = error {
@@ -235,13 +248,13 @@ class WeatherViewModel_Tests: XCTestCase, WeatherConditionPresenting, WindSpeedP
         let outputs = self.sut.outputs
         outputs.favoriteButtonTitle
             .compactMap({ $0 })
-            .drive(onNext: { vm in
+            .sink(receiveValue: { vm in
                 XCTAssertEqual(vm.icon, .heart)
                 XCTAssertEqual(vm.title, NSLocalizedString("locationAddToFavoritesButton", comment: ""))
                 
                 expect.fulfill()
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         waitForExpectations(timeout: 1) { error in
             if let e = error {
@@ -258,17 +271,25 @@ class WeatherViewModel_Tests: XCTestCase, WeatherConditionPresenting, WindSpeedP
         self.sut.loadWeather(forLocation: location)
         
         let expect = expectation(description: #function)
+        var expectedTitles: [String] = [
+            NSLocalizedString("locationAddToFavoritesButton", comment: ""), // Title for initial value
+            NSLocalizedString("locationRemoveFromFavoritesButton", comment: "")
+        ]
         
         let outputs = self.sut.outputs
         outputs.favoriteButtonTitle
             .compactMap({ $0 })
-            .drive(onNext: { vm in
+            .sink(receiveValue: { vm in
                 XCTAssertEqual(vm.icon, .heart)
-                XCTAssertEqual(vm.title, NSLocalizedString("locationRemoveFromFavoritesButton", comment: ""))
                 
-                expect.fulfill()
+                let title = expectedTitles.removeFirst()
+                XCTAssertEqual(vm.title, title)
+                
+                if expectedTitles.isEmpty {
+                    expect.fulfill()
+                }
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         waitForExpectations(timeout: 1) { error in
             if let e = error {
@@ -287,12 +308,15 @@ class WeatherViewModel_Tests: XCTestCase, WeatherConditionPresenting, WindSpeedP
         self.sut.loadWeather(forLocation: location)
         
         let inputs = self.sut.inputs
-        inputs.toggleFavoriteStatus.accept(())
+        inputs.toggleFavoriteStatus.send(())
         
         XCTAssertEqual(self.storage.numSaveLocationFavoriteStatusCalls, 1)
         XCTAssertEqual(self.storage.saveLocationFavoriteStatusArgumentValue, true)
         
-        inputs.toggleFavoriteStatus.accept(())
+        // Have to wait to propagate the new favorite status to other publishers in the view model (?)
+        let _ = try awaitPublisher(Timer.publish(every: 0.1, on: .main, in: .default).autoconnect().first())
+        
+        inputs.toggleFavoriteStatus.send(())
         
         XCTAssertEqual(self.storage.numSaveLocationFavoriteStatusCalls, 2)
         XCTAssertEqual(self.storage.saveLocationFavoriteStatusArgumentValue, false)
@@ -307,11 +331,10 @@ class WeatherViewModel_Tests: XCTestCase, WeatherConditionPresenting, WindSpeedP
         
         let outputs = self.sut.outputs
         outputs.favoriteButtonTitle
-            .asObservable()
             .compactMap({ $0 })
-            .take(3)
-            .toArray()
-            .subscribe(onSuccess: { vms in
+            .prefix(3)
+            .collect()
+            .sink(receiveValue: { vms in
                 XCTAssertEqual(vms.count, 3)
                 
                 // Default title
@@ -322,14 +345,12 @@ class WeatherViewModel_Tests: XCTestCase, WeatherConditionPresenting, WindSpeedP
                 
                 // Tapped, removed from favorites
                 XCTAssertEqual(vms[2].title, NSLocalizedString("locationAddToFavoritesButton", comment: ""))
-            }, onFailure: { error in
-                XCTFail(error.localizedDescription)
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         let inputs = self.sut.inputs
-        inputs.toggleFavoriteStatus.accept(())
-        inputs.toggleFavoriteStatus.accept(())
+        inputs.toggleFavoriteStatus.send(())
+        inputs.toggleFavoriteStatus.send(())
     }
     
     func test_favorite_error_alert_is_published_after_favorite_status_fails_to_update() throws {
@@ -341,19 +362,19 @@ class WeatherViewModel_Tests: XCTestCase, WeatherConditionPresenting, WindSpeedP
         
         let outputs = self.sut.outputs
         outputs.favoriteStatusAlert
-            .emit(onNext: { alert in
+            .sink(receiveValue: { alert in
                 XCTAssertEqual(alert.button, NSLocalizedString("okAlertButton", comment: ""))
                 XCTAssertEqual(alert.message, NSLocalizedString("locationFavoriteErrorMessage", comment: ""))
                 XCTAssertEqual(alert.title, NSLocalizedString("locationFavoriteErrorTitle", comment: ""))
                 
                 expect.fulfill()
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         self.storage.shouldFail = true
         
         let inputs = self.sut.inputs
-        inputs.toggleFavoriteStatus.accept(())
+        inputs.toggleFavoriteStatus.send(())
         
         waitForExpectations(timeout: 1) { error in
             if let e = error {
