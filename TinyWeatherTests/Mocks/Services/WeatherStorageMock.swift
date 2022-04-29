@@ -10,7 +10,6 @@
 //  
 
 import Foundation
-import RxSwift
 import TWModels
 import Combine
 @testable import TinyWeather
@@ -87,51 +86,51 @@ class WeatherStorageMock: WeatherStorageManaging {
     
     var numLoadLocationFavoriteStatusCalls: Int = 0
     var loadLocationFavoriteStatusValue: Bool = false
-    func loadLocationFavoriteStatus(_ location: WeatherLocation) -> Single<Bool> {
-        Single.create { single in
-            self.numLoadLocationFavoriteStatusCalls += 1
-            
-            if self.shouldFail {
-                single(.failure(MockError.forcedError))
-            } else {
-                single(.success(self.loadLocationFavoriteStatusValue))
+    func loadLocationFavoriteStatus(_ location: WeatherLocation) -> AnyPublisher<Bool, Error> {
+        Deferred {
+            Future<Bool, Error> { future in
+                self.numLoadLocationFavoriteStatusCalls += 1
+                
+                if self.shouldFail {
+                    future(.failure(MockError.forcedError))
+                } else {
+                    future(.success(self.loadLocationFavoriteStatusValue))
+                }
             }
-            
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
     }
     
     var numSaveLocationFavoriteStatusCalls: Int = 0
     var saveLocationFavoriteStatusArgumentValue: Bool = false
-    func saveLocationFavoriteStatus(_ location: WeatherLocation, isFavorite: Bool) -> Single<Bool> {
-        Single.create { single in
-            self.saveLocationFavoriteStatusArgumentValue = isFavorite
-            self.numSaveLocationFavoriteStatusCalls += 1
-            
-            if self.shouldFail {
-                single(.failure(MockError.forcedError))
-            } else {
-                single(.success(isFavorite))
+    func saveLocationFavoriteStatus(_ location: WeatherLocation, isFavorite: Bool) -> AnyPublisher<Bool, Error> {
+        Deferred {
+            Future<Bool, Error> { future in
+                self.saveLocationFavoriteStatusArgumentValue = isFavorite
+                self.numSaveLocationFavoriteStatusCalls += 1
+                
+                if self.shouldFail {
+                    future(.failure(MockError.forcedError))
+                } else {
+                    future(.success(isFavorite))
+                }
             }
-            
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
     }
     
     var numLoadFavoriteLocationsCalls: Int = 0
     var favoriteLocations: [WeatherLocation] = []
-    func loadFavoriteLocations() -> Single<[WeatherLocation]> {
-        Single.create { single in
-            self.numLoadFavoriteLocationsCalls += 1
-            
-            if self.shouldFail {
-                single(.failure(MockError.forcedError))
-            } else {
-                single(.success(self.favoriteLocations))
+    func loadFavoriteLocations() -> AnyPublisher<[WeatherLocation], Error> {
+        Deferred {
+            Future<[WeatherLocation], Error> { future in
+                self.numLoadFavoriteLocationsCalls += 1
+                
+                if self.shouldFail {
+                    future(.failure(MockError.forcedError))
+                } else {
+                    future(.success(self.favoriteLocations))
+                }
             }
-            
-            return Disposables.create()
-        }
+        }.eraseToAnyPublisher()
     }
     
 }
