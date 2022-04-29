@@ -12,13 +12,13 @@
 import UIKit
 import TWModels
 import TWExtensions
-import RxRelay
+import Combine
 
 enum Weather {
     
     struct Model {
         /// The current location presented in the weather scene.
-        let location: BehaviorRelay<WeatherLocation?> = BehaviorRelay(value: nil)
+        let location: CurrentValueSubject<WeatherLocation?, Never> = CurrentValueSubject(nil)
         
         /// Last timestamp of the loaded weather model.
         var loadTimestamp: TimeInterval = 0

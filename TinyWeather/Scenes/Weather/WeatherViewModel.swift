@@ -10,8 +10,6 @@
 //
 
 import Foundation
-import RxSwift
-import RxCocoa
 import UIKit
 import TWThemes
 import TWExtensions
@@ -20,23 +18,23 @@ import TWRoutes
 import Combine
 
 protocol WeatherViewModelInputs {
-    var panGestureDidBegin: PublishRelay<Void> { get }
-    var panGestureDidChange: PublishRelay<CGFloat> { get }
-    var panGestureDidEnd: PublishRelay<CGPoint> { get }
-    var toggleFavoriteStatus: PublishRelay<Void> { get }
-    var appDidEnterBackground: PublishRelay<Void> { get }
-    var appDidBecomeActive: PublishRelay<Void> { get }
+    var panGestureDidBegin: PassthroughSubject<Void, Never> { get }
+    var panGestureDidChange: PassthroughSubject<CGFloat, Never> { get }
+    var panGestureDidEnd: PassthroughSubject<CGPoint, Never> { get }
+    var toggleFavoriteStatus: PassthroughSubject<Void, Never> { get }
+    var appDidEnterBackground: PassthroughSubject<Void, Never> { get }
+    var appDidBecomeActive: PassthroughSubject<Void, Never> { get }
 }
 
 protocol WeatherViewModelOutputs {
-    var locationInfo: Driver<Weather.Location.ViewModel> { get }
-    var state: Driver<Weather.State> { get }
-    var currentWeather: Driver<Weather.Current.ViewModel> { get }
-    var dailyWeatherWillRefresh: Driver<Void> { get }
-    var newDailyWeather: Driver<Weather.Day.ViewModel> { get }
-    var favoriteButtonTitle: Driver<IconButton.ViewModel?> { get }
-    var favoriteStatusAlert: Signal<Alert.ViewModel> { get }
-    var weatherError: Driver<Weather.Error.ViewModel?> { get }
+    var locationInfo: AnyPublisher<Weather.Location.ViewModel, Never> { get }
+    var state: AnyPublisher<Weather.State, Never> { get }
+    var currentWeather: AnyPublisher<Weather.Current.ViewModel, Never> { get }
+    var dailyWeatherWillRefresh: AnyPublisher<Void, Never> { get }
+    var newDailyWeather: AnyPublisher<Weather.Day.ViewModel, Never> { get }
+    var favoriteButtonTitle: AnyPublisher<IconButton.ViewModel?, Never> { get }
+    var favoriteStatusAlert: AnyPublisher<Alert.ViewModel, Never> { get }
+    var weatherError: AnyPublisher<Weather.Error.ViewModel?, Never> { get }
 }
 
 protocol WeatherViewModelProtocol {
@@ -52,7 +50,6 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
                         RainAmountPresenting, SnowAmountPresenting {
     
     private var cancellables: Set<AnyCancellable> = []
-    private let disposeBag: DisposeBag = DisposeBag()
     private let dateFormatter: DateFormatter = DateFormatter()
     
     private let weatherLoader: WeatherLoading
@@ -61,10 +58,10 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
     
     private var model: Weather.Model = Weather.Model()
     
-    private var didBeginPan: BehaviorRelay<Bool> = BehaviorRelay(value: false)
-    private var panTranslation: BehaviorRelay<CGFloat> = BehaviorRelay(value: 0)
+    private var didBeginPan: CurrentValueSubject<Bool, Never> = CurrentValueSubject(false)
+    private var panTranslation: CurrentValueSubject<CGFloat, Never> = CurrentValueSubject(0)
     
-    private var autoRefreshDisposable: Disposable?
+    private var autoRefreshCancellable: Cancellable?
 
     var inputs: WeatherViewModelInputs { return self }
     var outputs: WeatherViewModelOutputs { return self }
@@ -72,38 +69,38 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
     let theme: Theme
 
     // Inputs
-    let panGestureDidBegin: PublishRelay<Void> = PublishRelay()
-    let panGestureDidChange: PublishRelay<CGFloat> = PublishRelay()
-    let panGestureDidEnd: PublishRelay<CGPoint> = PublishRelay()
-    let toggleFavoriteStatus: PublishRelay<Void> = PublishRelay()
-    let appDidEnterBackground: PublishRelay<Void> = PublishRelay()
-    let appDidBecomeActive: PublishRelay<Void> = PublishRelay()
+    let panGestureDidBegin: PassthroughSubject<Void, Never> = PassthroughSubject()
+    let panGestureDidChange: PassthroughSubject<CGFloat, Never> = PassthroughSubject()
+    let panGestureDidEnd: PassthroughSubject<CGPoint, Never> = PassthroughSubject()
+    let toggleFavoriteStatus: PassthroughSubject<Void, Never> = PassthroughSubject()
+    let appDidEnterBackground: PassthroughSubject<Void, Never> = PassthroughSubject()
+    let appDidBecomeActive: PassthroughSubject<Void, Never> = PassthroughSubject()
 
     // Outputs
-    private let _locationInfo: BehaviorRelay<Weather.Location.ViewModel?> = BehaviorRelay(value: nil)
-    let locationInfo: Driver<Weather.Location.ViewModel>
+    private let _locationInfo: CurrentValueSubject<Weather.Location.ViewModel?, Never> = CurrentValueSubject(nil)
+    let locationInfo: AnyPublisher<Weather.Location.ViewModel, Never>
     
-    private let _state: BehaviorRelay<Weather.State> = BehaviorRelay(value: .loading)
-    let state: Driver<Weather.State>
+    private let _state: CurrentValueSubject<Weather.State, Never> = CurrentValueSubject(.loading)
+    let state: AnyPublisher<Weather.State, Never>
     
-    private let _currentWeather: BehaviorRelay<Weather.Current.ViewModel?> = BehaviorRelay(value: nil)
-    let currentWeather: Driver<Weather.Current.ViewModel>
+    private let _currentWeather: CurrentValueSubject<Weather.Current.ViewModel?, Never> = CurrentValueSubject(nil)
+    let currentWeather: AnyPublisher<Weather.Current.ViewModel, Never>
     
-    private let _dailyWeatherWillRefresh: PublishRelay<Void> = PublishRelay()
-    let dailyWeatherWillRefresh: Driver<Void>
+    private let _dailyWeatherWillRefresh: PassthroughSubject<Void, Never> = PassthroughSubject()
+    let dailyWeatherWillRefresh: AnyPublisher<Void, Never>
     
-    private let _dailyWeather: BehaviorRelay<[Weather.Day.ViewModel?]?> = BehaviorRelay(value: nil)
-    let newDailyWeather: Driver<Weather.Day.ViewModel>
+    private let _dailyWeather: CurrentValueSubject<[Weather.Day.ViewModel?]?, Never> = CurrentValueSubject(nil)
+    let newDailyWeather: AnyPublisher<Weather.Day.ViewModel, Never>
     
-    private let isLocationFavorite: BehaviorRelay<Bool> = BehaviorRelay(value: false)
-    private let _favoriteButtonTitle: BehaviorRelay<IconButton.ViewModel?> = BehaviorRelay(value: nil)
-    let favoriteButtonTitle: Driver<IconButton.ViewModel?>
+    private let isLocationFavorite: CurrentValueSubject<Bool, Never> = CurrentValueSubject(false)
+    private let _favoriteButtonTitle: CurrentValueSubject<IconButton.ViewModel?, Never> = CurrentValueSubject(nil)
+    let favoriteButtonTitle: AnyPublisher<IconButton.ViewModel?, Never>
     
-    private let _favoriteStatusAlert: PublishRelay<Alert.ViewModel> = PublishRelay()
-    let favoriteStatusAlert: Signal<Alert.ViewModel>
+    private let _favoriteStatusAlert: PassthroughSubject<Alert.ViewModel, Never> = PassthroughSubject()
+    let favoriteStatusAlert: AnyPublisher<Alert.ViewModel, Never>
     
-    private let _weatherError: PublishRelay<Weather.Error.ViewModel?> = PublishRelay()
-    let weatherError: Driver<Weather.Error.ViewModel?>
+    private let _weatherError: PassthroughSubject<Weather.Error.ViewModel?, Never> = PassthroughSubject()
+    let weatherError: AnyPublisher<Weather.Error.ViewModel?, Never>
 
     init(theme: Theme, weatherLoader: WeatherLoading, router: WeakRouter<AppRoute>, storage: WeatherStorageManaging) {
         self.theme = theme
@@ -119,21 +116,21 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
         // Outputs
         self.state = _state.asDriver()
         
-        self.locationInfo = _locationInfo.asDriver().compactMap({ $0 })
-        self.currentWeather = _currentWeather.asDriver().compactMap({ $0 })
+        self.locationInfo = _locationInfo.asDriver().compactMap({ $0 }).eraseToAnyPublisher()
+        self.currentWeather = _currentWeather.asDriver().compactMap({ $0 }).eraseToAnyPublisher()
         
         self.dailyWeatherWillRefresh = _dailyWeatherWillRefresh.asDriver(onErrorJustReturn: ())
         self.newDailyWeather = _dailyWeather
             .compactMap({ $0 })
             .flatMap({
-                Observable.from($0)
-                    .observe(on: MainScheduler.instance)
+                $0.publisher
             })
             .asDriver(onErrorJustReturn: nil)
             .compactMap({ $0 })
+            .eraseToAnyPublisher()
         
         self.favoriteButtonTitle = _favoriteButtonTitle.asDriver(onErrorJustReturn: nil)
-        self.favoriteStatusAlert = _favoriteStatusAlert.asSignal()
+        self.favoriteStatusAlert = _favoriteStatusAlert.eraseToAnyPublisher()
         
         self.weatherError = _weatherError.asDriver(onErrorJustReturn: nil)
         
@@ -142,39 +139,43 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
         
         self.panGestureDidBegin
             .map({ true })
-            .bind(to: self.didBeginPan)
-            .disposed(by: self.disposeBag)
+            .assign(to: \.value, on: self.didBeginPan)
+            .store(in: &self.cancellables)
         
         self.panGestureDidBegin
-            .subscribe(onNext: {
+            .sink(receiveValue: {
                 router.route(to: .search(.began))
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         self.panGestureDidChange
-            .bind(to: self.panTranslation)
-            .disposed(by: self.disposeBag)
+            .assign(to: \.value, on: self.panTranslation)
+            .store(in: &self.cancellables)
         
         self.appDidBecomeActive
-            .subscribe(onNext: { [weak self] in
+            .sink(receiveValue: { [weak self] in
                 guard let weakSelf = self else { return }
                 
                 weakSelf.setAutoRefreshTimer()
                 weakSelf.refreshWeather()
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         self.appDidEnterBackground
-            .subscribe(onNext: { [weak self] in
+            .sink(receiveValue: {[weak self] in
                 self?.disposeAutoRefreshTimer()
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         // Update favorite status on button tap
         let favoriteStatus = self.toggleFavoriteStatus
             .flatMap({
-                Observable.zip(self.model.location.compactMap({ $0 }), self.isLocationFavorite)
-                    .take(1)
+                Publishers.Zip(self.model.location.compactMap({ $0 }).eraseToAnyPublisher(), self.isLocationFavorite.eraseToAnyPublisher())
+                    .prefix(1)
+                    .eraseToAnyPublisher()
+            })
+            .handleEvents(receiveOutput: { _, isFav in
+                print("    save is fav \(isFav)")
             })
             .flatMap({ (location: WeatherLocation, isFavorite: Bool) in
                 storage.saveLocationFavoriteStatus(location, isFavorite: !isFavorite)
@@ -185,16 +186,21 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
         
         favoriteStatus
             .compactMap({ $0 })
-            .bind(to: self.isLocationFavorite)
-            .disposed(by: self.disposeBag)
-        
+            .handleEvents(receiveOutput: { val in
+                print("  > changing isLocationFavorite => \(val)")
+            })
+            .assign(to: \.value, on: self.isLocationFavorite)
+            .store(in: &self.cancellables)
+
         favoriteStatus
             .filter({ $0 == nil })
             .compactMap({ [weak self] _ in
                 self?.getFavoriteUpdateErrorAlert()
             })
-            .bind(to: self._favoriteStatusAlert)
-            .disposed(by: self.disposeBag)
+            .sink(receiveValue: { [weak self] vm in
+                self?._favoriteStatusAlert.send(vm)
+            })
+            .store(in: &self.cancellables)
         
         // Map favorite state to the button title
         self.isLocationFavorite
@@ -202,8 +208,8 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
             .map({ [weak self] (isFavorite) in
                 self?.getFavoriteButton(isFavorite: isFavorite)
             })
-            .drive(self._favoriteButtonTitle)
-            .disposed(by: self.disposeBag)
+            .assign(to: \.value, on: _favoriteButtonTitle)
+            .store(in: &self.cancellables)
         
         // Load the favorite state for the current location whenever it changes
         self.model.location
@@ -212,10 +218,10 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
                 storage.loadLocationFavoriteStatus(location)
                     .asDriver(onErrorJustReturn: false)
             })
-            .bind(to: self.isLocationFavorite)
-            .disposed(by: self.disposeBag)
+            .assign(to: \.value, on: self.isLocationFavorite)
+            .store(in: &self.cancellables)
         
-        Observable.combineLatest(self.panGestureDidChange, self.didBeginPan)
+        Publishers.CombineLatest(self.panGestureDidChange, self.didBeginPan)
             .filter({ _, didBeginPan in
                 didBeginPan
             })
@@ -223,26 +229,28 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
                 translation
             })
             .map({ CGPoint(x: 0, y: $0) })
-            .subscribe(onNext: { translation in
+            .sink(receiveValue: { translation in
                 router.route(to: .search(.changed(translation: translation)))
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         self.panGestureDidEnd
-            .withLatestFrom(Observable.combineLatest(self.panGestureDidEnd, self.panTranslation))
-            .subscribe(onNext: { (velocity, translation) in
+            .flatMap({ velocity in
+                Publishers.CombineLatest(Just(velocity).eraseToAnyPublisher(), self.panTranslation.eraseToAnyPublisher())
+            })
+            .sink(receiveValue: { (velocity, translation) in
                 if translation > 0 {
                     router.route(to: .search(.ended(velocity: velocity)))
                 } else {
                     router.route(to: .search(.ended(velocity: CGPoint(x: 0, y: -1))))
                 }
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         self.panGestureDidEnd
             .map({ _ in false })
-            .bind(to: self.didBeginPan)
-            .disposed(by: self.disposeBag)
+            .assign(to: \.value, on: self.didBeginPan)
+            .store(in: &self.cancellables)
         
         self._state
             .map({ $0 == .error })
@@ -252,20 +260,22 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
                 }
                 return nil
             })
-            .bind(to: self._weatherError)
-            .disposed(by: self.disposeBag)
+            .sink(receiveValue: { [weak self] vm in
+                self?._weatherError.send(vm)
+            })
+            .store(in: &self.cancellables)
     }
     
     func loadWeather(forLocation location: WeatherLocation) {
         let info: Weather.Location.ViewModel = self.getLocationInfo(response: location)
-        self._locationInfo.accept(info)
+        self._locationInfo.send(info)
         
         // Hide existing daily weather if loading a new location
         if self.model.matchesCurrentLocation(location) == false {
-            self._dailyWeatherWillRefresh.accept(())
+            self._dailyWeatherWillRefresh.send(())
         }
         
-        self.model.location.accept(location)
+        self.model.location.send(location)
         
         // Save this location as default now (i.e. last one shown)
         self.storage.saveDefaultLocation(location)
@@ -273,7 +283,7 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
             .store(in: &self.cancellables)
         
         // Set loading state
-        self._state.accept(.loading)
+        self._state.send(.loading)
         
         // Load current weather
         self.refreshWeather(forLocation: location)
@@ -283,7 +293,7 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
         // If this is the scene's location, update the "favorite" button
         guard self.model.matchesCurrentLocation(location) else { return }
         
-        self.isLocationFavorite.accept(false)
+        self.isLocationFavorite.send(false)
     }
     
     //
@@ -307,8 +317,8 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
             }, receiveValue: { [weak self] (weather: Weather.Current.ViewModel) in
                 guard let weakSelf = self else { return }
                 
-                weakSelf._state.accept(.loaded)
-                weakSelf._currentWeather.accept(weather)
+                weakSelf._state.send(.loaded)
+                weakSelf._currentWeather.send(weather)
             })
             .store(in: &self.cancellables)
         
@@ -328,15 +338,15 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
             })
             .sink(receiveCompletion: { [weak self] (completion) in
                 if case .failure = completion {
-                    self?._state.accept(.error)
+                    self?._state.send(.error)
                 }
             }, receiveValue: { [weak self] (weather: Weather.Overview.ViewModel) in
                 guard let weakSelf = self else { return }
                 
-                weakSelf._state.accept(.loaded)
-                weakSelf._currentWeather.accept(weather.current)
-                weakSelf._dailyWeatherWillRefresh.accept(())
-                weakSelf._dailyWeather.accept(weather.daily)
+                weakSelf._state.send(.loaded)
+                weakSelf._currentWeather.send(weather.current)
+                weakSelf._dailyWeatherWillRefresh.send(())
+                weakSelf._dailyWeather.send(weather.daily)
             })
             .store(in: &self.cancellables)
     }
@@ -505,19 +515,20 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
     }
     
     private func setAutoRefreshTimer() {
-        guard self.autoRefreshDisposable == nil else { return }
+        guard self.autoRefreshCancellable == nil else { return }
         
-        self.autoRefreshDisposable = Observable<Int>.interval(.seconds(30), scheduler: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] _ in
+        self.autoRefreshCancellable = Timer.publish(every: 30, on: .main, in: .default)
+            .autoconnect()
+            .sink(receiveValue: { [weak self] _ in
                 self?.refreshWeather()
             })
     }
     
     private func disposeAutoRefreshTimer() {
-        guard let disposable = self.autoRefreshDisposable else { return }
+        guard let disposable = self.autoRefreshCancellable else { return }
         
-        self.autoRefreshDisposable = nil
-        disposable.dispose()
+        self.autoRefreshCancellable = nil
+        disposable.cancel()
     }
     
     private func refreshWeather() {

@@ -10,13 +10,14 @@
 //
 
 import UIKit
-import RxSwift
 import SnapKit
+import Combine
+import CombineCocoa
 
 class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableViewDelegate {
     
     private let viewModel: WeatherViewModelProtocol
-    private let disposeBag: DisposeBag = DisposeBag()
+    private var cancellables: Set<AnyCancellable> = []
     
     private let headerView: WeatherHeaderView
     private let dailyWeatherView: DailyWeatherView
@@ -191,95 +192,95 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
         let outputs: WeatherViewModelOutputs = self.viewModel.outputs
         
         outputs.locationInfo
-            .drive(self.headerView.rx.location)
-            .disposed(by: self.disposeBag)
+            .bind(to: self.headerView.rx.location)
+            .store(in: &self.cancellables)
         
         outputs.currentWeather
-            .drive(self.headerView.rx.weather)
-            .disposed(by: self.disposeBag)
+            .bind(to: self.headerView.rx.weather)
+            .store(in: &self.cancellables)
         
         outputs.newDailyWeather
-            .drive(self.dailyWeatherView.rx.newDailyWeather)
-            .disposed(by: self.disposeBag)
+            .bind(to: self.dailyWeatherView.rx.newDailyWeather)
+            .store(in: &self.cancellables)
         
         outputs.state
             .filter({ $0 == .loading })
             .map({ _ in })
-            .drive(self.headerView.rx.showLoading)
-            .disposed(by: self.disposeBag)
+            .bind(to: self.headerView.rx.showLoading)
+            .store(in: &self.cancellables)
         
         outputs.dailyWeatherWillRefresh
-            .drive(self.dailyWeatherView.rx.removeAll)
-            .disposed(by: self.disposeBag)
+            .bind(to: self.dailyWeatherView.rx.removeAll)
+            .store(in: &self.cancellables)
         
         outputs.state
             .map({ $0 != .loaded })
-            .drive(self.dailyWeatherView.rx.isHidden)
-            .disposed(by: self.disposeBag)
+            .bind(to: self.dailyWeatherView.rx.isHidden)
+            .store(in: &self.cancellables)
         
         outputs.state
             .filter({ $0 != .loading })
             .map({ _ in })
-            .drive(self.headerView.rx.hideLoading)
-            .disposed(by: self.disposeBag)
+            .bind(to: self.headerView.rx.hideLoading)
+            .store(in: &self.cancellables)
         
-        Observable.combineLatest(outputs.state.asObservable(), outputs.favoriteButtonTitle.asObservable())
+        Publishers.CombineLatest(outputs.state, outputs.favoriteButtonTitle)
             .map({ (state, title) -> Bool in
                 (title == nil) || (state != .loaded)
             })
             .bind(to: self.favoriteBtn.rx.isHidden)
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         outputs.favoriteButtonTitle
             .compactMap({ $0 })
-            .drive(self.favoriteBtn.rx.viewModel)
-            .disposed(by: self.disposeBag)
+            .bind(to: self.favoriteBtn.rx.viewModel)
+            .store(in: &self.cancellables)
         
         outputs.favoriteStatusAlert
-            .emit(to: self.rx.alert)
-            .disposed(by: self.disposeBag)
+            .bind(to: self.rx.alert)
+            .store(in: &self.cancellables)
         
         outputs.weatherError
-            .drive(self.errorViewModel)
-            .disposed(by: self.disposeBag)
+            .bind(to: self.errorViewModel)
+            .store(in: &self.cancellables)
         
-        self.favoriteBtn.rx
-            .tap
-            .bind(to: inputs.toggleFavoriteStatus)
-            .disposed(by: self.disposeBag)
+        self.favoriteBtn
+            .tapPublisher
+            .assign(to: inputs.toggleFavoriteStatus)
+            .store(in: &self.cancellables)
         
-        self.scrollView.rx
-            .willBeginDragging
-            .bind(to: inputs.panGestureDidBegin)
-            .disposed(by: self.disposeBag)
+        self.scrollView
+            .willBeginDraggingPublisher
+            .assign(to: inputs.panGestureDidBegin)
+            .store(in: &self.cancellables)
         
-        self.scrollView.rx
-            .didScroll
+        self.scrollView
+            .didScrollPublisher
             .compactMap({ [weak self] () -> CGFloat? in
                 guard let weakSelf = self else { return nil }
                 
                 return -(weakSelf.view.safeAreaInsets.top + weakSelf.scrollView.contentOffset.y)
             })
-            .bind(to: inputs.panGestureDidChange)
-            .disposed(by: self.disposeBag)
+            .assign(to: inputs.panGestureDidChange)
+            .store(in: &self.cancellables)
         
-        self.scrollView.rx
-            .willEndDragging
+        self.scrollView
+            .willEndDraggingPublisher
             .compactMap({ [weak self] _ -> CGPoint? in
                 self?.scrollView.panGestureRecognizer.velocity(in: self?.view)
             })
-            .bind(to: inputs.panGestureDidEnd)
-            .disposed(by: self.disposeBag)
+            .assign(to: inputs.panGestureDidEnd)
+            .store(in: &self.cancellables)
         
-        NotificationCenter.default.rx.notification(UIApplication.didEnterBackgroundNotification)
+        NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)
             .map({ _ in })
-            .bind(to: inputs.appDidEnterBackground)
-            .disposed(by: self.disposeBag)
+            .assign(to: inputs.appDidEnterBackground)
+            .store(in: &self.cancellables)
         
-        NotificationCenter.default.rx.notification(UIApplication.didBecomeActiveNotification)
+        NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
             .map({ _ in })
-            .bind(to: inputs.appDidBecomeActive)
-            .disposed(by: self.disposeBag)
+            .assign(to: inputs.appDidEnterBackground)
+            .store(in: &self.cancellables)
     }
     
 }
