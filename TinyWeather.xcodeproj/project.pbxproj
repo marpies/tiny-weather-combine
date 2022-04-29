@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C326653327F9ACDB00DF83E8 /* Observable+Interval.swift in Sources */ = {isa = PBXBuildFile; fileRef = C326653227F9ACDB00DF83E8 /* Observable+Interval.swift */; };
 		C326653727F9C41E00DF83E8 /* TemperaturePillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C326653627F9C41E00DF83E8 /* TemperaturePillView.swift */; };
 		C326653927F9C60000DF83E8 /* WeatherDayOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C326653827F9C60000DF83E8 /* WeatherDayOverviewView.swift */; };
 		C326653D27FB395600DF83E8 /* TemperaturePillsDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C326653C27FB395600DF83E8 /* TemperaturePillsDemoView.swift */; };
@@ -183,7 +182,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		C326653227F9ACDB00DF83E8 /* Observable+Interval.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Observable+Interval.swift"; sourceTree = "<group>"; };
 		C326653627F9C41E00DF83E8 /* TemperaturePillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemperaturePillView.swift; sourceTree = "<group>"; };
 		C326653827F9C60000DF83E8 /* WeatherDayOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherDayOverviewView.swift; sourceTree = "<group>"; };
 		C326653C27FB395600DF83E8 /* TemperaturePillsDemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemperaturePillsDemoView.swift; sourceTree = "<group>"; };
@@ -687,7 +685,6 @@
 			isa = PBXGroup;
 			children = (
 				C348A57127F61F7C006787C3 /* Views+Rx */,
-				C326653227F9ACDB00DF83E8 /* Observable+Interval.swift */,
 				C336A47B27FF01C4008DC090 /* NSManagedObjectContext+PerformWith.swift */,
 				C3ABBF6F280811BE00B2F8DB /* NSManagedObjectContext+Save.swift */,
 				C3A64AD228057C88001B0683 /* CLLocationManager+Rx.swift */,
@@ -1072,7 +1069,6 @@
 				C399D28D281B140000845F7F /* Publisher+Driver.swift in Sources */,
 				C36522BE27BE9C3800E6AF39 /* SearchViewModel.swift in Sources */,
 				C365231027C52D2000E6AF39 /* NetworkingAssembly.swift in Sources */,
-				C326653327F9ACDB00DF83E8 /* Observable+Interval.swift in Sources */,
 				C348A57027F61D95006787C3 /* RainAmountPresenting.swift in Sources */,
 				C365230A27C522C800E6AF39 /* SearchModels.swift in Sources */,
 				C348A57927F62B8B006787C3 /* WeatherAttributeView.swift in Sources */,
