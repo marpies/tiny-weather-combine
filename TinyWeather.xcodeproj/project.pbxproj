@@ -125,6 +125,7 @@
 		C399D29E281D931D00845F7F /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C399D29D281D931D00845F7F /* LocationManager.swift */; };
 		C399D2A0281D935600845F7F /* ReactiveLocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C399D29F281D935600845F7F /* ReactiveLocationManager.swift */; };
 		C399D2A2281D937400845F7F /* ServicesAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = C399D2A1281D937400845F7F /* ServicesAssembly.swift */; };
+		C399D2A4281DC0CE00845F7F /* LocationManagerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = C399D2A3281DC0CE00845F7F /* LocationManagerMock.swift */; };
 		C3A64AC928054ED2001B0683 /* TWExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = C3A64AC828054ED2001B0683 /* TWExtensions */; };
 		C3A64ACB2805608A001B0683 /* TWModels in Frameworks */ = {isa = PBXBuildFile; productRef = C3A64ACA2805608A001B0683 /* TWModels */; };
 		C3A64ACD2805608A001B0683 /* TWRoutes in Frameworks */ = {isa = PBXBuildFile; productRef = C3A64ACC2805608A001B0683 /* TWRoutes */; };
@@ -287,6 +288,7 @@
 		C399D29D281D931D00845F7F /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		C399D29F281D935600845F7F /* ReactiveLocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactiveLocationManager.swift; sourceTree = "<group>"; };
 		C399D2A1281D937400845F7F /* ServicesAssembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesAssembly.swift; sourceTree = "<group>"; };
+		C399D2A3281DC0CE00845F7F /* LocationManagerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManagerMock.swift; sourceTree = "<group>"; };
 		C3A64ACE2805676C001B0683 /* DuotoneLabel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DuotoneLabel.swift; sourceTree = "<group>"; };
 		C3A64AD028056F0D001B0683 /* UIDuotoneIconButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIDuotoneIconButton.swift; sourceTree = "<group>"; };
 		C3ABBF652807448400B2F8DB /* DailyWeatherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyWeatherView.swift; sourceTree = "<group>"; };
@@ -535,6 +537,7 @@
 				C35DF8A32812ED32009641EB /* WeatherLoadingMock.swift */,
 				C35DF8A5281406F9009641EB /* RouterMock.swift */,
 				C35DF8A7281407E3009641EB /* WeatherStorageMock.swift */,
+				C399D2A3281DC0CE00845F7F /* LocationManagerMock.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -1112,6 +1115,7 @@
 				C35DF8AC28169F80009641EB /* SearchViewModel+Tests.swift in Sources */,
 				C35DF89128114091009641EB /* RequestExecuting+CurrentAndDaily.swift in Sources */,
 				C35DF898281144EA009641EB /* LocationWeatherStorageTestMock.swift in Sources */,
+				C399D2A4281DC0CE00845F7F /* LocationManagerMock.swift in Sources */,
 				C35DF894281141BB009641EB /* Response+CurrentAndDaily.swift in Sources */,
 				C35DF87C280FF7F0009641EB /* CoreDataTestModels.swift in Sources */,
 				C35DF88428100989009641EB /* CoreDataService+LoadLocation+Tests.swift in Sources */,
