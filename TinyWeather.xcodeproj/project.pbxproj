@@ -134,6 +134,7 @@
 		C399D29B281BDDFC00845F7F /* Publisher+Binder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C399D29A281BDDFC00845F7F /* Publisher+Binder.swift */; };
 		C399D29E281D931D00845F7F /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C399D29D281D931D00845F7F /* LocationManager.swift */; };
 		C399D2A0281D935600845F7F /* ReactiveLocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C399D29F281D935600845F7F /* ReactiveLocationManager.swift */; };
+		C399D2A2281D937400845F7F /* ServicesAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = C399D2A1281D937400845F7F /* ServicesAssembly.swift */; };
 		C3A64AC928054ED2001B0683 /* TWExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = C3A64AC828054ED2001B0683 /* TWExtensions */; };
 		C3A64ACB2805608A001B0683 /* TWModels in Frameworks */ = {isa = PBXBuildFile; productRef = C3A64ACA2805608A001B0683 /* TWModels */; };
 		C3A64ACD2805608A001B0683 /* TWRoutes in Frameworks */ = {isa = PBXBuildFile; productRef = C3A64ACC2805608A001B0683 /* TWRoutes */; };
@@ -296,6 +297,7 @@
 		C399D29A281BDDFC00845F7F /* Publisher+Binder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publisher+Binder.swift"; sourceTree = "<group>"; };
 		C399D29D281D931D00845F7F /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		C399D29F281D935600845F7F /* ReactiveLocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactiveLocationManager.swift; sourceTree = "<group>"; };
+		C399D2A1281D937400845F7F /* ServicesAssembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesAssembly.swift; sourceTree = "<group>"; };
 		C3A64ACE2805676C001B0683 /* DuotoneLabel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DuotoneLabel.swift; sourceTree = "<group>"; };
 		C3A64AD028056F0D001B0683 /* UIDuotoneIconButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIDuotoneIconButton.swift; sourceTree = "<group>"; };
 		C3A64AD228057C88001B0683 /* CLLocationManager+Rx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CLLocationManager+Rx.swift"; sourceTree = "<group>"; };
@@ -814,6 +816,7 @@
 			children = (
 				C399D29D281D931D00845F7F /* LocationManager.swift */,
 				C399D29F281D935600845F7F /* ReactiveLocationManager.swift */,
+				C399D2A1281D937400845F7F /* ServicesAssembly.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -1049,6 +1052,7 @@
 				C36522A327BE591D00E6AF39 /* Coordinator.swift in Sources */,
 				C348A56E27F61D2A006787C3 /* WindSpeedPresenting.swift in Sources */,
 				C3BCB5F02804230700D4ED15 /* CoreDataService+LocationWeather.swift in Sources */,
+				C399D2A2281D937400845F7F /* ServicesAssembly.swift in Sources */,
 				C3ABBF7A28089DCF00B2F8DB /* FavoriteLocationTableViewCell.swift in Sources */,
 				C3ABBF662807448400B2F8DB /* DailyWeatherView.swift in Sources */,
 				C36522B927BE679700E6AF39 /* ThemeAssembly.swift in Sources */,

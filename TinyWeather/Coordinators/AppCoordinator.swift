@@ -137,7 +137,8 @@ class AppCoordinator: Coordinator, Router {
             SearchAssembly(),
             WeatherAssembly(),
             NetworkingAssembly(),
-            CoreDataAssembly()
+            CoreDataAssembly(),
+            ServicesAssembly()
         ])
     }
     
