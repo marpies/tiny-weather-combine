@@ -231,6 +231,7 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
         self.panGestureDidEnd
             .flatMap({ [panTranslation] velocity in
                 Publishers.CombineLatest(Just(velocity).eraseToAnyPublisher(), panTranslation.eraseToAnyPublisher())
+                    .first()
             })
             .sink(receiveValue: { (velocity, translation) in
                 if translation > 0 {
