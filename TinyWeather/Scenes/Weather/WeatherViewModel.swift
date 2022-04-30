@@ -174,9 +174,6 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
                     .prefix(1)
                     .eraseToAnyPublisher()
             })
-            .handleEvents(receiveOutput: { _, isFav in
-                print("    save is fav \(isFav)")
-            })
             .flatMap({ (location: WeatherLocation, isFavorite: Bool) in
                 storage.saveLocationFavoriteStatus(location, isFavorite: !isFavorite)
                     .map({ Optional($0) })
@@ -186,9 +183,6 @@ class WeatherViewModel: WeatherViewModelProtocol, WeatherViewModelInputs, Weathe
         
         favoriteStatus
             .compactMap({ $0 })
-            .handleEvents(receiveOutput: { val in
-                print("  > changing isLocationFavorite => \(val)")
-            })
             .assign(to: \.value, on: self.isLocationFavorite)
             .store(in: &self.cancellables)
 
