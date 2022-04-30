@@ -52,9 +52,6 @@
 		C348A57927F62B8B006787C3 /* WeatherAttributeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C348A57827F62B8B006787C3 /* WeatherAttributeView.swift */; };
 		C348A57B27F62C72006787C3 /* CurrentWeatherHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C348A57A27F62C72006787C3 /* CurrentWeatherHeaderView.swift */; };
 		C348A57D27F62DEF006787C3 /* WeatherAttributesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C348A57C27F62DEF006787C3 /* WeatherAttributesView.swift */; };
-		C35DF872280F36DE009641EB /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = C35DF871280F36DE009641EB /* RxCocoa */; };
-		C35DF874280F36DE009641EB /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = C35DF873280F36DE009641EB /* RxRelay */; };
-		C35DF876280F36DE009641EB /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = C35DF875280F36DE009641EB /* RxSwift */; };
 		C35DF878280FF584009641EB /* CoreDataService+DefaultLocation+Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C35DF877280FF584009641EB /* CoreDataService+DefaultLocation+Tests.swift */; };
 		C35DF87C280FF7F0009641EB /* CoreDataTestModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C35DF87B280FF7F0009641EB /* CoreDataTestModels.swift */; };
 		C35DF88028100840009641EB /* CoreDataService+Setup+Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C35DF87F28100840009641EB /* CoreDataService+Setup+Tests.swift */; };
@@ -81,10 +78,6 @@
 		C365226427BE438500E6AF39 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C365226327BE438500E6AF39 /* Assets.xcassets */; };
 		C365226727BE438500E6AF39 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C365226527BE438500E6AF39 /* LaunchScreen.storyboard */; };
 		C365227D27BE438500E6AF39 /* TinyWeatherUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C365227C27BE438500E6AF39 /* TinyWeatherUITests.swift */; };
-		C365228C27BE445D00E6AF39 /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = C365228B27BE445D00E6AF39 /* RxSwift */; };
-		C365228E27BE445D00E6AF39 /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = C365228D27BE445D00E6AF39 /* RxRelay */; };
-		C365229027BE445D00E6AF39 /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = C365228F27BE445D00E6AF39 /* RxCocoa */; };
-		C365229227BE445D00E6AF39 /* RxBlocking in Frameworks */ = {isa = PBXBuildFile; productRef = C365229127BE445D00E6AF39 /* RxBlocking */; };
 		C365229527BE446900E6AF39 /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = C365229427BE446900E6AF39 /* Swinject */; };
 		C365229827BE447400E6AF39 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = C365229727BE447400E6AF39 /* SnapKit */; };
 		C36522A327BE591D00E6AF39 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36522A227BE591D00E6AF39 /* Coordinator.swift */; };
@@ -96,7 +89,6 @@
 		C36522BD27BE9C3800E6AF39 /* SearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36522BB27BE9C3800E6AF39 /* SearchViewController.swift */; };
 		C36522BE27BE9C3800E6AF39 /* SearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36522BC27BE9C3800E6AF39 /* SearchViewModel.swift */; };
 		C36522C027BE9C5200E6AF39 /* SearchAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36522BF27BE9C5200E6AF39 /* SearchAssembly.swift */; };
-		C36522C327BEDE0C00E6AF39 /* RxGesture in Frameworks */ = {isa = PBXBuildFile; productRef = C36522C227BEDE0C00E6AF39 /* RxGesture */; };
 		C36522C627C107F100E6AF39 /* SearchTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36522C527C107F100E6AF39 /* SearchTextField.swift */; };
 		C36522CD27C4E3FE00E6AF39 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = C36522CF27C4E3FE00E6AF39 /* Localizable.strings */; };
 		C36522FB27C51A0B00E6AF39 /* APISecrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36522FA27C51A0B00E6AF39 /* APISecrets.swift */; };
@@ -115,8 +107,6 @@
 		C377257B2817E5620099C8E6 /* Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = C377257A2817E5620099C8E6 /* Defaults.plist */; };
 		C377257D28180BB20099C8E6 /* WeatherErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C377257C28180BB20099C8E6 /* WeatherErrorView.swift */; };
 		C38DEEA7280DE4DF00777DCA /* CoreDataService+StorageService+Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C38DEEA6280DE4DF00777DCA /* CoreDataService+StorageService+Tests.swift */; };
-		C38DEEB6280DEC3F00777DCA /* RxBlocking in Frameworks */ = {isa = PBXBuildFile; productRef = C38DEEB5280DEC3F00777DCA /* RxBlocking */; };
-		C38DEEB8280DEC3F00777DCA /* RxTest in Frameworks */ = {isa = PBXBuildFile; productRef = C38DEEB7280DEC3F00777DCA /* RxTest */; };
 		C399D27D281AA34D00845F7F /* TWThemes in Frameworks */ = {isa = PBXBuildFile; productRef = C399D27C281AA34D00845F7F /* TWThemes */; };
 		C399D27F281AA34D00845F7F /* TWExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = C399D27E281AA34D00845F7F /* TWExtensions */; };
 		C399D281281AA34D00845F7F /* TWRoutes in Frameworks */ = {isa = PBXBuildFile; productRef = C399D280281AA34D00845F7F /* TWRoutes */; };
@@ -329,17 +319,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C365229027BE445D00E6AF39 /* RxCocoa in Frameworks */,
 				C399D27D281AA34D00845F7F /* TWThemes in Frameworks */,
 				C3D566D328054BFC008BEDBB /* TWThemes in Frameworks */,
 				C365229527BE446900E6AF39 /* Swinject in Frameworks */,
 				C3A64ACD2805608A001B0683 /* TWRoutes in Frameworks */,
-				C365229227BE445D00E6AF39 /* RxBlocking in Frameworks */,
 				C365229827BE447400E6AF39 /* SnapKit in Frameworks */,
-				C365228E27BE445D00E6AF39 /* RxRelay in Frameworks */,
-				C365228C27BE445D00E6AF39 /* RxSwift in Frameworks */,
 				C399D283281AA34D00845F7F /* TWModels in Frameworks */,
-				C36522C327BEDE0C00E6AF39 /* RxGesture in Frameworks */,
 				C3A64AC928054ED2001B0683 /* TWExtensions in Frameworks */,
 				C399D27F281AA34D00845F7F /* TWExtensions in Frameworks */,
 				C3A64ACB2805608A001B0683 /* TWModels in Frameworks */,
@@ -352,12 +337,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C35DF872280F36DE009641EB /* RxCocoa in Frameworks */,
-				C38DEEB8280DEC3F00777DCA /* RxTest in Frameworks */,
-				C35DF876280F36DE009641EB /* RxSwift in Frameworks */,
-				C35DF874280F36DE009641EB /* RxRelay in Frameworks */,
 				C399D28B281AA3ED00845F7F /* TWThemes in Frameworks */,
-				C38DEEB6280DEC3F00777DCA /* RxBlocking in Frameworks */,
 				C399D289281AA3ED00845F7F /* TWRoutes in Frameworks */,
 				C399D285281AA3ED00845F7F /* TWExtensions in Frameworks */,
 				C399D287281AA3ED00845F7F /* TWModels in Frameworks */,
@@ -863,13 +843,8 @@
 			);
 			name = TinyWeather;
 			packageProductDependencies = (
-				C365228B27BE445D00E6AF39 /* RxSwift */,
-				C365228D27BE445D00E6AF39 /* RxRelay */,
-				C365228F27BE445D00E6AF39 /* RxCocoa */,
-				C365229127BE445D00E6AF39 /* RxBlocking */,
 				C365229427BE446900E6AF39 /* Swinject */,
 				C365229727BE447400E6AF39 /* SnapKit */,
-				C36522C227BEDE0C00E6AF39 /* RxGesture */,
 				C3D566D228054BFC008BEDBB /* TWThemes */,
 				C3A64AC828054ED2001B0683 /* TWExtensions */,
 				C3A64ACA2805608A001B0683 /* TWModels */,
@@ -899,11 +874,6 @@
 			);
 			name = TinyWeatherTests;
 			packageProductDependencies = (
-				C38DEEB5280DEC3F00777DCA /* RxBlocking */,
-				C38DEEB7280DEC3F00777DCA /* RxTest */,
-				C35DF871280F36DE009641EB /* RxCocoa */,
-				C35DF873280F36DE009641EB /* RxRelay */,
-				C35DF875280F36DE009641EB /* RxSwift */,
 				C399D284281AA3ED00845F7F /* TWExtensions */,
 				C399D286281AA3ED00845F7F /* TWModels */,
 				C399D288281AA3ED00845F7F /* TWRoutes */,
@@ -964,10 +934,8 @@
 			);
 			mainGroup = C365225127BE438400E6AF39;
 			packageReferences = (
-				C365228A27BE445D00E6AF39 /* XCRemoteSwiftPackageReference "RxSwift" */,
 				C365229327BE446900E6AF39 /* XCRemoteSwiftPackageReference "Swinject" */,
 				C365229627BE447400E6AF39 /* XCRemoteSwiftPackageReference "SnapKit" */,
-				C36522C127BEDE0C00E6AF39 /* XCRemoteSwiftPackageReference "RxGesture" */,
 				C399D27B281AA34D00845F7F /* XCRemoteSwiftPackageReference "tiny-weather-common" */,
 				C399D290281BD7F700845F7F /* XCRemoteSwiftPackageReference "CombineCocoa" */,
 			);
@@ -1608,14 +1576,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		C365228A27BE445D00E6AF39 /* XCRemoteSwiftPackageReference "RxSwift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ReactiveX/RxSwift.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 6.5.0;
-			};
-		};
 		C365229327BE446900E6AF39 /* XCRemoteSwiftPackageReference "Swinject" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Swinject/Swinject.git";
@@ -1630,14 +1590,6 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 5.0.1;
-			};
-		};
-		C36522C127BEDE0C00E6AF39 /* XCRemoteSwiftPackageReference "RxGesture" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/RxSwiftCommunity/RxGesture.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.0.3;
 			};
 		};
 		C399D27B281AA34D00845F7F /* XCRemoteSwiftPackageReference "tiny-weather-common" */ = {
@@ -1659,41 +1611,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		C35DF871280F36DE009641EB /* RxCocoa */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C365228A27BE445D00E6AF39 /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = RxCocoa;
-		};
-		C35DF873280F36DE009641EB /* RxRelay */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C365228A27BE445D00E6AF39 /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = RxRelay;
-		};
-		C35DF875280F36DE009641EB /* RxSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C365228A27BE445D00E6AF39 /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = RxSwift;
-		};
-		C365228B27BE445D00E6AF39 /* RxSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C365228A27BE445D00E6AF39 /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = RxSwift;
-		};
-		C365228D27BE445D00E6AF39 /* RxRelay */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C365228A27BE445D00E6AF39 /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = RxRelay;
-		};
-		C365228F27BE445D00E6AF39 /* RxCocoa */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C365228A27BE445D00E6AF39 /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = RxCocoa;
-		};
-		C365229127BE445D00E6AF39 /* RxBlocking */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C365228A27BE445D00E6AF39 /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = RxBlocking;
-		};
 		C365229427BE446900E6AF39 /* Swinject */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C365229327BE446900E6AF39 /* XCRemoteSwiftPackageReference "Swinject" */;
@@ -1703,21 +1620,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C365229627BE447400E6AF39 /* XCRemoteSwiftPackageReference "SnapKit" */;
 			productName = SnapKit;
-		};
-		C36522C227BEDE0C00E6AF39 /* RxGesture */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C36522C127BEDE0C00E6AF39 /* XCRemoteSwiftPackageReference "RxGesture" */;
-			productName = RxGesture;
-		};
-		C38DEEB5280DEC3F00777DCA /* RxBlocking */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C365228A27BE445D00E6AF39 /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = RxBlocking;
-		};
-		C38DEEB7280DEC3F00777DCA /* RxTest */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C365228A27BE445D00E6AF39 /* XCRemoteSwiftPackageReference "RxSwift" */;
-			productName = RxTest;
 		};
 		C399D27C281AA34D00845F7F /* TWThemes */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -12,8 +12,6 @@
 import Foundation
 import UIKit
 import Swinject
-import RxSwift
-import RxCocoa
 import TWRoutes
 import TWModels
 
@@ -23,7 +21,6 @@ class WeatherCoordinator: Coordinator {
     private let viewController: WeatherViewController
     private let viewModel: WeatherViewModelProtocol
     
-    private let disposeBag: DisposeBag = DisposeBag()
     private let router: WeakRouter<AppRoute>
     
     weak var parent: Coordinator?

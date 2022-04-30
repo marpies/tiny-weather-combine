@@ -10,8 +10,6 @@
 //  
 
 import Foundation
-import RxSwift
-import RxCocoa
 
 extension Reactive where Base: CurrentWeatherView {
     var weather: Binder<Weather.Current.ViewModel> {

@@ -10,8 +10,6 @@
 //  
 
 import Foundation
-import RxCocoa
-import RxSwift
 import TWModels
 
 extension Reactive where Base: UIDuotoneIconButton {
