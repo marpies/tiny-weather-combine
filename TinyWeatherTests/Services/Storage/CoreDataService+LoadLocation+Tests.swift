@@ -10,8 +10,6 @@
 //  
 
 import XCTest
-import RxSwift
-import RxBlocking
 import CoreData
 import TWModels
 @testable import TinyWeather
