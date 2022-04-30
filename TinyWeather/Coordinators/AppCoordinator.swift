@@ -12,7 +12,7 @@
 import Foundation
 import UIKit
 import Swinject
-import RxSwift
+import Combine
 import TWRoutes
 import TWModels
 
@@ -20,7 +20,7 @@ class AppCoordinator: Coordinator, Router {
     
     private let resolver: Resolver
     
-    private let disposeBag: DisposeBag = DisposeBag()
+    private var cancellables: Set<AnyCancellable> = []
     
     let navigationController: UINavigationController
     var parent: Coordinator?
@@ -79,19 +79,19 @@ class AppCoordinator: Coordinator, Router {
             
             // Propagate deleted favorite location to the weather scene
             coordinator.favoriteDidDelete
-                .subscribe(onNext: { [weak self] (location) in
+                .sink(receiveValue: { [weak self] (location) in
                     self?.deleteFavoriteInWeatherScene(location: location)
                 })
-                .disposed(by: self.disposeBag)
+                .store(in: &self.cancellables)
             
             // Dispose the scene when it is hidden
             coordinator.sceneDidHide
-                .take(1)
-                .subscribe(onNext: { [weak self] in
+                .prefix(1)
+                .sink(receiveValue: { [weak self] in
                     self?.childDidComplete(coordinator)
                     coordinator.dispose()
                 })
-                .disposed(by: self.disposeBag)
+                .store(in: &self.cancellables)
             
             coordinator.start()
         }

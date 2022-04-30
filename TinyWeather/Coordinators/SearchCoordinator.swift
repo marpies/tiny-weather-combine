@@ -12,8 +12,7 @@
 import Foundation
 import UIKit
 import Swinject
-import RxSwift
-import RxCocoa
+import Combine
 import TWRoutes
 import TWModels
 
@@ -22,19 +21,15 @@ class SearchCoordinator: Coordinator {
     private let resolver: Resolver
     private var viewController: SearchViewController?
     
-    private let disposeBag: DisposeBag = DisposeBag()
+    private var cancellables: Set<AnyCancellable> = []
     private let router: WeakRouter<AppRoute>
     
     // Outputs
-    private let _sceneDidHide: PublishRelay<Void> = PublishRelay()
-    var sceneDidHide: Observable<Void> {
-        return _sceneDidHide.asObservable()
-    }
+    private let _sceneDidHide: PassthroughSubject<Void, Never> = PassthroughSubject()
+    let sceneDidHide: AnyPublisher<Void, Never>
     
-    private let _favoriteDidDelete: PublishRelay<WeatherLocation> = PublishRelay()
-    var favoriteDidDelete: Observable<WeatherLocation> {
-        return _favoriteDidDelete.asObservable()
-    }
+    private let _favoriteDidDelete: PassthroughSubject<WeatherLocation, Never> = PassthroughSubject()
+    let favoriteDidDelete: AnyPublisher<WeatherLocation, Never>
     
     /// Set to `true` before starting the coordinator to allow for interactive pan animation.
     var interactiveAnimation: Bool = false
@@ -47,6 +42,8 @@ class SearchCoordinator: Coordinator {
         self.navigationController = navigationController
         self.router = router
         self.resolver = resolver
+        self.sceneDidHide = _sceneDidHide.eraseToAnyPublisher()
+        self.favoriteDidDelete = _favoriteDidDelete.eraseToAnyPublisher()
     }
     
     @discardableResult func start() -> UIViewController {
@@ -54,12 +51,12 @@ class SearchCoordinator: Coordinator {
         self.viewController = self.resolver.resolve(SearchViewController.self, argument: vm)
         
         vm.outputs.sceneDidHide
-            .bind(to: _sceneDidHide)
-            .disposed(by: self.disposeBag)
+            .assign(to: self._sceneDidHide)
+            .store(in: &self.cancellables)
         
         vm.outputs.favoriteDidDelete
-            .emit(to: _favoriteDidDelete)
-            .disposed(by: self.disposeBag)
+            .assign(to: self._favoriteDidDelete)
+            .store(in: &self.cancellables)
         
         if let root = self.navigationController.topViewController, let vc = self.viewController {
             root.addChild(vc)

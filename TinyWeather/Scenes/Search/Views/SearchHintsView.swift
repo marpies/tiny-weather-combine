@@ -12,23 +12,21 @@
 import Foundation
 import UIKit
 import SnapKit
-import RxSwift
-import RxCocoa
+import Combine
 import TWThemes
 
 class SearchHintsView: UIView {
     
     private let theme: Theme
-    private let disposeBag: DisposeBag = DisposeBag()
+    private var cancellables: Set<AnyCancellable> = []
     
     // Outputs
-    private let _hintViewTap: PublishRelay<Int> = PublishRelay()
-    var hintViewTap: Observable<Int> {
-        return _hintViewTap.asObservable()
-    }
+    private let _hintViewTap: PassthroughSubject<Int, Never> = PassthroughSubject()
+    let hintViewTap: AnyPublisher<Int, Never>
     
     init(theme: Theme) {
         self.theme = theme
+        self.hintViewTap = _hintViewTap.eraseToAnyPublisher()
         
         super.init(frame: .zero)
         
@@ -105,10 +103,10 @@ class SearchHintsView: UIView {
             let view: SearchHintLocationView = SearchHintLocationView(theme: self.theme)
             view.tag = index
             view.update(viewModel: viewModel)
-            view.rx.tap
+            view.tapPublisher
                 .map({ view.tag })
-                .bind(to: self._hintViewTap)
-                .disposed(by: self.disposeBag)
+                .assign(to: self._hintViewTap)
+                .store(in: &self.cancellables)
             stack.addArrangedSubview(view)
         }
     }

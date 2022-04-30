@@ -11,8 +11,7 @@
 
 import Foundation
 import UIKit
-import RxSwift
-import RxCocoa
+import Combine
 
 class SearchPanAnimation {
     
@@ -27,7 +26,7 @@ class SearchPanAnimation {
     private var animationState: Search.AnimationState = .hidden
     private var fractionComplete: CGFloat = 0
     
-    let animationDidComplete: PublishRelay<UIViewAnimatingPosition> = PublishRelay()
+    let animationDidComplete: PassthroughSubject<UIViewAnimatingPosition, Never> = PassthroughSubject()
     
     var hintsView: UIView?
     
@@ -80,7 +79,7 @@ class SearchPanAnimation {
             guard let weakSelf = self else { return }
             
             weakSelf.visualView.effect = weakSelf.effect
-            weakSelf.animationDidComplete.accept(position)
+            weakSelf.animationDidComplete.send(position)
             weakSelf.animator = nil
             weakSelf.searchField.becomeFirstResponder()
         }
@@ -110,7 +109,7 @@ class SearchPanAnimation {
             guard let weakSelf = self else { return }
             
             weakSelf.visualView.effect = nil
-            weakSelf.animationDidComplete.accept(position)
+            weakSelf.animationDidComplete.send(position)
         }
         
         self.animator?.startAnimation()
@@ -180,7 +179,7 @@ class SearchPanAnimation {
                 weakSelf.hintsView?.transform = .identity
                 weakSelf.locationBtn.transform = .identity
                 weakSelf.favoritesView.transform = .identity
-                weakSelf.animationDidComplete.accept(position)
+                weakSelf.animationDidComplete.send(position)
             })
         }
     }

@@ -21,7 +21,8 @@ struct SearchAssembly: Assembly {
             let theme: Theme = r.resolve(Theme.self)!
             let apiService: RequestExecuting = r.resolve(RequestExecuting.self)!
             let storage: FavoriteLocationStorageManaging = r.resolve(FavoriteLocationStorageManaging.self)!
-            return SearchViewModel(apiService: apiService, theme: theme, router: router, storage: storage, isInteractiveAnimationEnabled: isInteractiveAnimationEnabled)
+            let locationManager: LocationManager = r.resolve(LocationManager.self)!
+            return SearchViewModel(apiService: apiService, theme: theme, router: router, storage: storage, locationManager: locationManager, isInteractiveAnimationEnabled: isInteractiveAnimationEnabled)
         }
         container.register(SearchViewController.self) { (r: Resolver, viewModel: SearchViewModelProtocol) in
             return SearchViewController(viewModel: viewModel)

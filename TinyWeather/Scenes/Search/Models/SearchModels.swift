@@ -11,14 +11,14 @@
 
 import Foundation
 import UIKit
-import RxCocoa
+import Combine
 import TWModels
 
 enum Search {
     
     struct Model {
-        let hints: BehaviorRelay<[Search.Location.Response]?> = BehaviorRelay(value: nil)
-        let favorites: BehaviorRelay<[WeatherLocation]?> = BehaviorRelay(value: nil)
+        let hints: CurrentValueSubject<[Search.Location.Response]?, Never> = CurrentValueSubject(nil)
+        let favorites: CurrentValueSubject<[WeatherLocation]?, Never> = CurrentValueSubject(nil)
         
         func getHintLocation(at index: Int) -> Search.Location.Response? {
             if index >= 0, let locations = self.hints.value, index < locations.count {
@@ -37,7 +37,7 @@ enum Search {
         func removeFavoriteLocation(at index: Int) {
             if index >= 0, var locations = self.favorites.value, index < locations.count {
                 locations.remove(at: index)
-                self.favorites.accept(locations)
+                self.favorites.send(locations)
             }
         }
     }

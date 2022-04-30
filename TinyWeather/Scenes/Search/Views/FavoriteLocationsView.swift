@@ -12,9 +12,8 @@
 import UIKit
 import TWThemes
 import SnapKit
-import RxSwift
-import RxRelay
-import RxGesture
+import Combine
+import CombineCocoa
 
 class FavoriteLocationsView: UIView, UITableViewDelegate {
     
@@ -24,26 +23,20 @@ class FavoriteLocationsView: UIView, UITableViewDelegate {
     private var titleLabel: UILabel?
     private var tableShadow: UIView?
     private var dataSource: FavoritesTableDataSource?
-    private var disposeBag: DisposeBag?
+    private var cancellables: Set<AnyCancellable>?
     
     private(set) var tableView: UITableView?
     
-    private let locations: BehaviorRelay<[Search.Location.ViewModel]> = BehaviorRelay(value: [])
+    private let locations: CurrentValueSubject<[Search.Location.ViewModel], Never> = CurrentValueSubject([])
     
-    private let _tableViewDidScroll: PublishRelay<Void> = PublishRelay()
-    var tableViewDidScroll: Observable<Void> {
-        return _tableViewDidScroll.asObservable()
-    }
+    private let _tableViewDidScroll: PassthroughSubject<Void, Never> = PassthroughSubject()
+    let tableViewDidScroll: AnyPublisher<Void, Never>
     
-    private let _locationDidSelect: PublishRelay<Int> = PublishRelay()
-    var locationDidSelect: Observable<Int> {
-        return _locationDidSelect.asObservable()
-    }
+    private let _locationDidSelect: PassthroughSubject<Int, Never> = PassthroughSubject()
+    let locationDidSelect: AnyPublisher<Int, Never>
     
-    private let _locationDidDelete: PublishRelay<Int> = PublishRelay()
-    var locationDidDelete: Observable<Int> {
-        return _locationDidDelete.asObservable()
-    }
+    private let _locationDidDelete: PassthroughSubject<Int, Never> = PassthroughSubject()
+    let locationDidDelete: AnyPublisher<Int, Never>
     
     var panGesture: UIGestureRecognizer? {
         return self.tableView?.panGestureRecognizer
@@ -51,6 +44,9 @@ class FavoriteLocationsView: UIView, UITableViewDelegate {
 
     init(theme: Theme) {
         self.theme = theme
+        self.tableViewDidScroll = _tableViewDidScroll.eraseToAnyPublisher()
+        self.locationDidSelect = _locationDidSelect.eraseToAnyPublisher()
+        self.locationDidDelete = _locationDidDelete.eraseToAnyPublisher()
         
         super.init(frame: .zero)
     }
@@ -107,9 +103,9 @@ class FavoriteLocationsView: UIView, UITableViewDelegate {
         
         self.messageLabel?.text = message
         
-        self.locations.accept([])
+        self.locations.send([])
         
-        self.disposeBag = nil
+        self.cancellables = nil
         
         if let table = self.tableView, let label = self.titleLabel, let tableShadow = self.tableShadow {
             self.tableView = nil
@@ -173,23 +169,22 @@ class FavoriteLocationsView: UIView, UITableViewDelegate {
                 
                 self.dataSource = FavoritesTableDataSource(tableView: table, theme: self.theme)
                 
-                self.disposeBag = DisposeBag()
-                self.disposeBag.map { bag in
-                    self.locations
-                        .bind(to: self.dataSource!.rx.viewModel)
-                        .disposed(by: bag)
-                    
-                    table.panGestureRecognizer.rx.event
-                        .filter({ $0.state == .began })
-                        .map({ _ in })
-                        .bind(to: self._tableViewDidScroll)
-                        .disposed(by: bag)
-                }
+                self.cancellables = []
+                self.locations
+                    .bind(to: self.dataSource!.rx.viewModel)
+                    .store(in: &self.cancellables!)
+                
+                table.panGestureRecognizer
+                    .panPublisher
+                    .filter({ $0.state == .began })
+                    .map({ _ in })
+                    .assign(to: self._tableViewDidScroll)
+                    .store(in: &self.cancellables!)
             }
         }
         
         self.titleLabel?.text = title
-        self.locations.accept(locations)
+        self.locations.send(locations)
         
         self.messageLabel?.removeFromSuperview()
         self.messageLabel = nil
@@ -200,13 +195,13 @@ class FavoriteLocationsView: UIView, UITableViewDelegate {
     //
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        self._locationDidSelect.accept(indexPath.row)
+        self._locationDidSelect.send(indexPath.row)
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let title: String = NSLocalizedString("favoriteLocationRemoveButton", comment: "")
         let action: UIContextualAction = UIContextualAction(style: .destructive, title: title) { [weak self] (_, _, completion) in
-            self?._locationDidDelete.accept(indexPath.row)
+            self?._locationDidDelete.send(indexPath.row)
             completion(true)
         }
         return UISwipeActionsConfiguration(actions: [action])
