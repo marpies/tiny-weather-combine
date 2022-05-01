@@ -13,7 +13,7 @@ import XCTest
 import TWThemes
 import TWRoutes
 import TWModels
-import RxSwift
+import Combine
 @testable import TinyWeather
 
 class SearchViewModel_Tests: XCTestCase, CoordinatesPresenting {
@@ -24,18 +24,21 @@ class SearchViewModel_Tests: XCTestCase, CoordinatesPresenting {
     private var router: WeakRouter<AppRoute>!
     private var storage: WeatherStorageMock!
     private var apiService: RequestExecutingGeo!
-    private var disposeBag: DisposeBag! = DisposeBag()
+    private var locationManager: LocationManagerMock!
+    private var cancellables: Set<AnyCancellable>!
     
     override func setUpWithError() throws {
+        self.cancellables = []
         self.routerMock = RouterMock()
         let router = WeakRouter<AppRoute>(self.routerMock)
         self.storage = WeatherStorageMock()
         self.apiService = RequestExecutingGeo()
-        self.sut = SearchViewModel(apiService: apiService, theme: AppTheme(), router: router, storage: storage, isInteractiveAnimationEnabled: false)
+        self.locationManager = LocationManagerMock()
+        self.sut = SearchViewModel(apiService: apiService, theme: AppTheme(), router: router, storage: storage, locationManager: locationManager, isInteractiveAnimationEnabled: false)
     }
     
     override func tearDownWithError() throws {
-        self.disposeBag = nil
+        self.cancellables = nil
     }
     
     func test_search_field_placeholder() {
@@ -45,12 +48,12 @@ class SearchViewModel_Tests: XCTestCase, CoordinatesPresenting {
         
         outputs.searchPlaceholder
             .compactMap({ $0 })
-            .drive(onNext: { val in
+            .sink(receiveValue: { val in
                 XCTAssertEqual(val.string, NSLocalizedString("searchInputPlaceholder", comment: ""))
                 
                 expect.fulfill()
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         waitForExpectations(timeout: 1) { error in
             if let e = error {
@@ -65,13 +68,13 @@ class SearchViewModel_Tests: XCTestCase, CoordinatesPresenting {
         let expect = expectation(description: #function)
         
         outputs.locationButtonTitle
-            .drive(onNext: { val in
+            .sink(receiveValue: { val in
                 XCTAssertEqual(val.title, NSLocalizedString("searchDeviceLocationButton", comment: ""))
                 XCTAssertEqual(val.icon, .location)
                 
                 expect.fulfill()
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         waitForExpectations(timeout: 1) { error in
             if let e = error {
@@ -91,10 +94,9 @@ class SearchViewModel_Tests: XCTestCase, CoordinatesPresenting {
         let expect5 = expectation(description: "no hints for empty query")
         
         outputs.searchHints
-            .asObservable()
-            .take(5)
-            .toArray()
-            .subscribe(onSuccess: { values in
+            .prefix(5)
+            .collect()
+            .sink(receiveValue: { values in
                 XCTAssertEqual(values.count, 5)
                 
                 // Loading
@@ -159,20 +161,38 @@ class SearchViewModel_Tests: XCTestCase, CoordinatesPresenting {
                 // Verify number of api service calls
                 XCTAssertEqual(self.apiService.numExecuteCalls, 2)
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
-        self.apiService.shouldRespondWithEmpty = false
+        Timer.publish(every: 0.1, on: .main, in: .default)
+            .autoconnect()
+            .first()
+            .sink(receiveValue: { _ in
+                self.apiService.shouldRespondWithEmpty = false
+                
+                inputs.searchValue.send("London")
+                inputs.performSearch.send(())
+            })
+            .store(in: &self.cancellables)
         
-        inputs.searchValue.accept("London")
-        inputs.performSearch.onNext(())
+        Timer.publish(every: 0.2, on: .main, in: .default)
+            .autoconnect()
+            .first()
+            .sink(receiveValue: { _ in
+                self.apiService.shouldRespondWithEmpty = true
+                
+                inputs.searchValue.send("no results")
+                inputs.performSearch.send(())
+            })
+            .store(in: &self.cancellables)
         
-        self.apiService.shouldRespondWithEmpty = true
-        
-        inputs.searchValue.accept("no results")
-        inputs.performSearch.onNext(())
-        
-        inputs.searchValue.accept("")
-        inputs.performSearch.onNext(())
+        Timer.publish(every: 0.3, on: .main, in: .default)
+            .autoconnect()
+            .first()
+            .sink(receiveValue: { _ in
+                inputs.searchValue.send("")
+                inputs.performSearch.send(())
+            })
+            .store(in: &self.cancellables)
         
         waitForExpectations(timeout: 1) { error in
             if let e = error {
@@ -191,10 +211,9 @@ class SearchViewModel_Tests: XCTestCase, CoordinatesPresenting {
         self.apiService.shouldFail = true
         
         outputs.searchHints
-            .asObservable()
-            .take(2)
-            .toArray()
-            .subscribe(onSuccess: { values in
+            .prefix(2)
+            .collect()
+            .sink(receiveValue: { values in
                 XCTAssertEqual(values.count, 2)
                 
                 // Loading
@@ -219,10 +238,10 @@ class SearchViewModel_Tests: XCTestCase, CoordinatesPresenting {
                 // Verify number of api service calls
                 XCTAssertEqual(self.apiService.numExecuteCalls, 1)
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
-        inputs.searchValue.accept("London")
-        inputs.performSearch.onNext(())
+        inputs.searchValue.send("London")
+        inputs.performSearch.send(())
         
         waitForExpectations(timeout: 1) { error in
             if let e = error {
@@ -236,10 +255,11 @@ class SearchViewModel_Tests: XCTestCase, CoordinatesPresenting {
         let router = WeakRouter<AppRoute>(self.routerMock)
         self.storage = WeatherStorageMock()
         self.apiService = RequestExecutingGeo()
+        self.locationManager = LocationManagerMock()
         
         XCTAssertEqual(self.storage.numLoadFavoriteLocationsCalls, 0)
         
-        self.sut = SearchViewModel(apiService: apiService, theme: AppTheme(), router: router, storage: storage, isInteractiveAnimationEnabled: false)
+        self.sut = SearchViewModel(apiService: apiService, theme: AppTheme(), router: router, storage: storage, locationManager: locationManager, isInteractiveAnimationEnabled: false)
         
         XCTAssertEqual(self.storage.numLoadFavoriteLocationsCalls, 1)
     }
@@ -249,21 +269,22 @@ class SearchViewModel_Tests: XCTestCase, CoordinatesPresenting {
         let router = WeakRouter<AppRoute>(self.routerMock)
         self.storage = WeatherStorageMock()
         self.apiService = RequestExecutingGeo()
+        self.locationManager = LocationManagerMock()
         
         let expect = expectation(description: #function)
         
-        self.sut = SearchViewModel(apiService: apiService, theme: AppTheme(), router: router, storage: storage, isInteractiveAnimationEnabled: false)
+        self.sut = SearchViewModel(apiService: apiService, theme: AppTheme(), router: router, storage: storage, locationManager: locationManager, isInteractiveAnimationEnabled: false)
         
         let outputs = self.sut.outputs
         outputs.favorites
-            .drive(onNext: { vm in
+            .sink(receiveValue: { vm in
                 if case .none(let message) = vm {
                     XCTAssertEqual(message, NSLocalizedString("noFavoritesMessage", comment: ""))
                     
                     expect.fulfill()
                 }
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         waitForExpectations(timeout: 1) { error in
             if let e = error {
@@ -278,14 +299,15 @@ class SearchViewModel_Tests: XCTestCase, CoordinatesPresenting {
         self.storage = WeatherStorageMock()
         self.storage.favoriteLocations = [TestLocations.location1, TestLocations.location2]
         self.apiService = RequestExecutingGeo()
+        self.locationManager = LocationManagerMock()
         
         let expect = expectation(description: #function)
         
-        self.sut = SearchViewModel(apiService: apiService, theme: AppTheme(), router: router, storage: storage, isInteractiveAnimationEnabled: false)
+        self.sut = SearchViewModel(apiService: apiService, theme: AppTheme(), router: router, storage: storage, locationManager: locationManager, isInteractiveAnimationEnabled: false)
         
         let outputs = self.sut.outputs
         outputs.favorites
-            .drive(onNext: { vm in
+            .sink(receiveValue: { vm in
                 if case .saved(let title, let locations) = vm {
                     let expectedTitle = String.localizedStringWithFormat(NSLocalizedString("numberOfFavoritesTitle", comment: ""), self.storage.favoriteLocations.count)
                     XCTAssertEqual(title, expectedTitle)
@@ -305,7 +327,7 @@ class SearchViewModel_Tests: XCTestCase, CoordinatesPresenting {
                     expect.fulfill()
                 }
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         waitForExpectations(timeout: 1) { error in
             if let e = error {
@@ -320,20 +342,21 @@ class SearchViewModel_Tests: XCTestCase, CoordinatesPresenting {
         self.storage = WeatherStorageMock()
         self.storage.favoriteLocations = [TestLocations.location1, TestLocations.location2]
         self.apiService = RequestExecutingGeo()
+        self.locationManager = LocationManagerMock()
         
         let expect = expectation(description: #function)
         
-        self.sut = SearchViewModel(apiService: apiService, theme: AppTheme(), router: router, storage: storage, isInteractiveAnimationEnabled: false)
+        self.sut = SearchViewModel(apiService: apiService, theme: AppTheme(), router: router, storage: storage, locationManager: locationManager, isInteractiveAnimationEnabled: false)
         
         let outputs = self.sut.outputs
         outputs.sceneWillHide
-            .subscribe(onNext: {
+            .sink(receiveValue: {
                 expect.fulfill()
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
         let inputs = self.sut.inputs
-        inputs.favoriteLocationDidSelect.accept(1)
+        inputs.favoriteLocationDidSelect.send(1)
         
         waitForExpectations(timeout: 1) { error in
             if let e = error {
@@ -350,11 +373,12 @@ class SearchViewModel_Tests: XCTestCase, CoordinatesPresenting {
         self.storage = WeatherStorageMock()
         self.storage.favoriteLocations = [TestLocations.location1, tapLocation]
         self.apiService = RequestExecutingGeo()
+        self.locationManager = LocationManagerMock()
         
-        self.sut = SearchViewModel(apiService: apiService, theme: AppTheme(), router: router, storage: storage, isInteractiveAnimationEnabled: false)
+        self.sut = SearchViewModel(apiService: apiService, theme: AppTheme(), router: router, storage: storage, locationManager: locationManager, isInteractiveAnimationEnabled: false)
         
         let inputs = self.sut.inputs
-        inputs.favoriteLocationDidSelect.accept(1)
+        inputs.favoriteLocationDidSelect.send(1)
         
         let route: AppRoute = try XCTUnwrap(self.routerMock.calledRoute)
         
@@ -379,16 +403,16 @@ class SearchViewModel_Tests: XCTestCase, CoordinatesPresenting {
         
         self.apiService.shouldRespondWithEmpty = false
         
-        inputs.searchValue.accept("London")
-        inputs.performSearch.onNext(())
+        inputs.searchValue.send("London")
+        inputs.performSearch.send(())
         
         outputs.sceneWillHide
-            .subscribe(onNext: {
+            .sink(receiveValue: {
                 expect.fulfill()
             })
-            .disposed(by: self.disposeBag)
+            .store(in: &self.cancellables)
         
-        inputs.locationHintTap.accept(1)
+        inputs.locationHintTap.send(1)
         
         waitForExpectations(timeout: 1) { error in
             if let e = error {
@@ -402,10 +426,10 @@ class SearchViewModel_Tests: XCTestCase, CoordinatesPresenting {
         
         self.apiService.shouldRespondWithEmpty = false
         
-        inputs.searchValue.accept("London")
-        inputs.performSearch.onNext(())
+        inputs.searchValue.send("London")
+        inputs.performSearch.send(())
         
-        inputs.locationHintTap.accept(1)
+        inputs.locationHintTap.send(1)
         
         let route: AppRoute = try XCTUnwrap(self.routerMock.calledRoute)
         
