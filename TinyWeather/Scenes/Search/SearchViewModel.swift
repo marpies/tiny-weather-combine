@@ -138,7 +138,7 @@ class SearchViewModel: SearchViewModelProtocol, SearchViewModelInputs, SearchVie
         
         let searchValue = self.performSearch
             .flatMap({ [searchValue] in
-                searchValue.eraseToAnyPublisher()
+                searchValue.first().eraseToAnyPublisher()
             })
             .share()
         
